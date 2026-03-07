@@ -1,0 +1,144 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://automagent.dev/schema/compose/v1.json",
+  "title": "Automagent Agent Compose Definition",
+  "description": "Schema for agent-compose.yaml — multi-agent composition definitions",
+  "type": "object",
+  "required": ["name", "description", "agents"],
+  "additionalProperties": true,
+  "properties": {
+    "apiVersion": {
+      "type": "string",
+      "description": "Schema version. Defaults to 'v1'.",
+      "default": "v1"
+    },
+    "kind": {
+      "type": "string",
+      "const": "compose",
+      "description": "Must be 'compose' for composition definitions.",
+      "default": "compose"
+    },
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?$",
+      "maxLength": 128,
+      "description": "Machine-readable slug for the composition. Must start and end with alphanumeric."
+    },
+    "version": {
+      "type": "string",
+      "description": "Semver of this composition definition.",
+      "default": "0.1.0"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Human-readable description of what this composition does."
+    },
+    "agents": {
+      "type": "array",
+      "description": "Agent references that participate in this composition.",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/AgentRef"
+      }
+    },
+    "workflow": {
+      "$ref": "#/definitions/Workflow",
+      "description": "Workflow orchestration configuration."
+    },
+    "governance": {
+      "type": "object",
+      "description": "Governance configuration for the composition.",
+      "additionalProperties": true,
+      "properties": {
+        "data_classification": {
+          "type": "string",
+          "description": "Data classification level."
+        },
+        "inherits_from": {
+          "type": "string",
+          "description": "Agent reference to inherit governance from."
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Organizational metadata.",
+      "additionalProperties": true,
+      "properties": {
+        "owner": {
+          "type": "string",
+          "description": "Team or individual who owns this composition."
+        },
+        "tags": {
+          "type": "array",
+          "description": "Tags for discovery and categorization.",
+          "items": { "type": "string" }
+        },
+        "license": {
+          "type": "string",
+          "description": "License identifier."
+        }
+      }
+    }
+  },
+  "definitions": {
+    "AgentRef": {
+      "type": "object",
+      "required": ["ref", "role"],
+      "additionalProperties": true,
+      "properties": {
+        "ref": {
+          "type": "string",
+          "description": "Agent reference (e.g., '@acme/legal-reviewer:^2.1.0')."
+        },
+        "role": {
+          "type": "string",
+          "description": "Role this agent plays in the composition."
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of this agent's role."
+        }
+      }
+    },
+    "Workflow": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["sequential", "parallel", "router", "hierarchical", "dynamic"],
+          "description": "Workflow orchestration type."
+        },
+        "steps": {
+          "type": "array",
+          "description": "Workflow steps.",
+          "items": {
+            "$ref": "#/definitions/WorkflowStep"
+          }
+        }
+      }
+    },
+    "WorkflowStep": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "agent": {
+          "type": "string",
+          "description": "Role name of the agent to execute."
+        },
+        "input_from": {
+          "description": "Input source — a string reference or array of references.",
+          "oneOf": [
+            { "type": "string" },
+            {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,552 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://automagent.dev/schema/v1.json",
+  "title": "Automagent Agent Definition",
+  "description": "Schema for agent.yaml — the standard definition format for AI agents",
+  "type": "object",
+  "required": ["name", "description", "model"],
+  "additionalProperties": true,
+  "properties": {
+    "apiVersion": {
+      "type": "string",
+      "description": "Schema version for evolution. Defaults to 'v1'.",
+      "default": "v1"
+    },
+    "kind": {
+      "type": "string",
+      "enum": ["agent", "team"],
+      "description": "Definition type. Defaults to 'agent'.",
+      "default": "agent"
+    },
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?$",
+      "maxLength": 128,
+      "description": "Machine-readable slug. Lowercase alphanumeric and hyphens only. Must start and end with alphanumeric."
+    },
+    "version": {
+      "type": "string",
+      "description": "Semver of this agent definition. Defaults to '0.1.0'.",
+      "default": "0.1.0"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Human-readable description of what the agent does."
+    },
+    "model": {
+      "description": "Model identifier (string) or full model configuration (object).",
+      "oneOf": [
+        {
+          "type": "string",
+          "description": "Simple model identifier, e.g. 'claude-sonnet'"
+        },
+        {
+          "$ref": "#/definitions/ModelConfig"
+        }
+      ]
+    },
+    "instructions": {
+      "description": "System prompt (string) or structured instructions (object).",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "$ref": "#/definitions/InstructionsConfig"
+        }
+      ]
+    },
+    "tools": {
+      "type": "array",
+      "description": "Inline tool definitions. MCP server references go in a sibling 'mcp' key at the same level.",
+      "items": {
+        "$ref": "#/definitions/ToolDefinition"
+      }
+    },
+    "mcp": {
+      "type": "array",
+      "description": "MCP server references for tool discovery.",
+      "items": {
+        "$ref": "#/definitions/McpServerConfig"
+      }
+    },
+    "context": {
+      "type": "array",
+      "description": "Static knowledge sources the agent should have access to.",
+      "items": {
+        "$ref": "#/definitions/ContextSource"
+      }
+    },
+    "inputs": {
+      "type": "object",
+      "description": "JSON Schema for structured input to the agent.",
+      "additionalProperties": true,
+      "properties": {
+        "schema": {
+          "type": "object",
+          "description": "JSON Schema defining the input format.",
+          "additionalProperties": true
+        }
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "description": "JSON Schema for structured output from the agent.",
+      "additionalProperties": true,
+      "properties": {
+        "schema": {
+          "type": "object",
+          "description": "JSON Schema defining the output format.",
+          "additionalProperties": true
+        }
+      }
+    },
+    "guardrails": {
+      "$ref": "#/definitions/Guardrails",
+      "description": "Input/output validation, behavioral rules, and prohibited actions."
+    },
+    "governance": {
+      "$ref": "#/definitions/Governance",
+      "description": "Data classification, PII handling, compliance, and authorized use."
+    },
+    "evaluation": {
+      "type": "object",
+      "description": "Test datasets, minimum scores, and behavioral assertions.",
+      "additionalProperties": true,
+      "properties": {
+        "dataset": {
+          "type": "string",
+          "description": "Path to evaluation dataset file."
+        },
+        "minimum_score": {
+          "type": "number",
+          "description": "Minimum passing score."
+        },
+        "assertions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+              "input": { "type": "string" },
+              "expected": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "triggers": {
+      "type": "array",
+      "description": "Events and schedules that activate the agent.",
+      "items": {
+        "$ref": "#/definitions/Trigger"
+      }
+    },
+    "environments": {
+      "type": "object",
+      "description": "Per-environment overrides (e.g., staging, production).",
+      "additionalProperties": {
+        "type": "object",
+        "description": "Environment-specific overrides. Any agent field can be overridden.",
+        "additionalProperties": true
+      }
+    },
+    "dependencies": {
+      "type": "object",
+      "description": "Agent and tool dependency declarations.",
+      "additionalProperties": true,
+      "properties": {
+        "agents": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AgentDependency"
+          }
+        }
+      }
+    },
+    "extensions": {
+      "type": "object",
+      "description": "Framework-specific configuration under namespaced keys (e.g., crewai, langgraph).",
+      "additionalProperties": true
+    },
+    "metadata": {
+      "$ref": "#/definitions/Metadata",
+      "description": "Organizational metadata: owner, tags, categories, author, license."
+    }
+  },
+  "definitions": {
+    "ModelConfig": {
+      "type": "object",
+      "required": ["id"],
+      "additionalProperties": true,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Model identifier, e.g. 'claude-sonnet-4-20250514'"
+        },
+        "provider": {
+          "type": "string",
+          "description": "Model provider, e.g. 'anthropic', 'openai'"
+        },
+        "settings": {
+          "type": "object",
+          "description": "Model-specific settings (temperature, max_tokens, etc.).",
+          "additionalProperties": true,
+          "properties": {
+            "temperature": { "type": "number" },
+            "max_tokens": { "type": "integer" }
+          }
+        },
+        "fallback": {
+          "type": "object",
+          "description": "Fallback model if primary is unavailable.",
+          "additionalProperties": true,
+          "properties": {
+            "id": { "type": "string" },
+            "provider": { "type": "string" }
+          }
+        },
+        "compatible": {
+          "type": "array",
+          "description": "List of compatible models with compatibility scores.",
+          "items": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+              "id": { "type": "string" },
+              "score": { "type": "number" }
+            }
+          }
+        }
+      }
+    },
+    "InstructionsConfig": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "system": {
+          "description": "System prompt as string or file reference.",
+          "oneOf": [
+            { "type": "string" },
+            {
+              "type": "object",
+              "additionalProperties": true,
+              "properties": {
+                "file": { "type": "string" }
+              }
+            }
+          ]
+        },
+        "persona": {
+          "type": "object",
+          "description": "Agent persona configuration.",
+          "additionalProperties": true,
+          "properties": {
+            "role": { "type": "string" },
+            "tone": { "type": "string" },
+            "expertise": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "ToolDefinition": {
+      "type": "object",
+      "description": "Inline tool definition following MCP's Tool interface.",
+      "required": ["name"],
+      "additionalProperties": true,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Tool name."
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of the tool."
+        },
+        "inputSchema": {
+          "type": "object",
+          "description": "JSON Schema for tool parameters.",
+          "additionalProperties": true
+        },
+        "annotations": {
+          "type": "object",
+          "description": "MCP tool annotations (readOnlyHint, idempotentHint, etc.).",
+          "additionalProperties": true,
+          "properties": {
+            "readOnlyHint": { "type": "boolean" },
+            "idempotentHint": { "type": "boolean" },
+            "destructiveHint": { "type": "boolean" },
+            "openWorldHint": { "type": "boolean" }
+          }
+        }
+      }
+    },
+    "McpServerConfig": {
+      "type": "object",
+      "description": "MCP server reference for tool discovery.",
+      "required": ["name", "transport"],
+      "additionalProperties": true,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "MCP server name."
+        },
+        "transport": {
+          "type": "string",
+          "enum": ["stdio", "streamable-http"],
+          "description": "Transport type."
+        },
+        "url": {
+          "type": "string",
+          "description": "URL for streamable-http transport."
+        },
+        "command": {
+          "type": "string",
+          "description": "Command for stdio transport."
+        },
+        "args": {
+          "type": "array",
+          "description": "Arguments for stdio transport.",
+          "items": { "type": "string" }
+        },
+        "auth": {
+          "type": "object",
+          "description": "Authentication configuration.",
+          "additionalProperties": true,
+          "properties": {
+            "type": { "type": "string" },
+            "scope": { "type": "string" }
+          }
+        }
+      }
+    },
+    "ContextSource": {
+      "type": "object",
+      "description": "A static knowledge source.",
+      "additionalProperties": true,
+      "properties": {
+        "file": {
+          "type": "string",
+          "description": "Path to a local file or glob pattern."
+        },
+        "url": {
+          "type": "string",
+          "description": "URL to fetch content from."
+        },
+        "agent": {
+          "type": "string",
+          "description": "Agent reference for dynamic context."
+        }
+      }
+    },
+    "Guardrails": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "input": {
+          "type": "array",
+          "description": "Input guardrails applied before processing.",
+          "items": {
+            "$ref": "#/definitions/GuardrailRule"
+          }
+        },
+        "output": {
+          "type": "array",
+          "description": "Output guardrails applied after processing.",
+          "items": {
+            "$ref": "#/definitions/GuardrailRule"
+          }
+        },
+        "behavioral": {
+          "type": "array",
+          "description": "Behavioral rules as natural language strings.",
+          "items": { "type": "string" }
+        },
+        "prohibited_actions": {
+          "type": "array",
+          "description": "Actions the agent must never take.",
+          "items": { "type": "string" }
+        },
+        "require_approval": {
+          "type": "array",
+          "description": "Actions that require human approval before execution.",
+          "items": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+              "pattern": { "type": "string" },
+              "approvers": {
+                "type": "array",
+                "items": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "GuardrailRule": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Guardrail name."
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable description."
+        },
+        "action": {
+          "type": "string",
+          "enum": ["block", "warn", "transform", "log"],
+          "description": "Action to take when triggered."
+        }
+      }
+    },
+    "Governance": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "data_classification": {
+          "type": "string",
+          "description": "Data classification level."
+        },
+        "pii_handling": {
+          "type": "string",
+          "description": "How PII is handled (e.g., 'processes', 'none')."
+        },
+        "pii_types": {
+          "type": "array",
+          "description": "Types of PII the agent processes.",
+          "items": { "type": "string" }
+        },
+        "data_residency": {
+          "type": "array",
+          "description": "Allowed data residency regions.",
+          "items": { "type": "string" }
+        },
+        "compliance_frameworks": {
+          "type": "array",
+          "description": "Compliance frameworks (e.g., SOC2, GDPR).",
+          "items": { "type": "string" }
+        },
+        "risk_level": {
+          "type": "string",
+          "description": "Risk level assessment."
+        },
+        "authorized_use": {
+          "type": "object",
+          "description": "Authorized use constraints.",
+          "additionalProperties": true,
+          "properties": {
+            "departments": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "environments": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "Trigger": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "event": {
+          "type": "string",
+          "description": "Event name that triggers the agent."
+        },
+        "schedule": {
+          "type": "string",
+          "description": "Cron expression for scheduled execution."
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of the trigger."
+        },
+        "filter": {
+          "type": "object",
+          "description": "Event filter conditions.",
+          "additionalProperties": true
+        }
+      }
+    },
+    "AgentDependency": {
+      "type": "object",
+      "required": ["ref"],
+      "additionalProperties": true,
+      "properties": {
+        "ref": {
+          "type": "string",
+          "description": "Agent reference (e.g., '@acme/fact-checker:^1.2.0')."
+        },
+        "role": {
+          "type": "string",
+          "description": "Role this dependency plays."
+        },
+        "required": {
+          "type": "boolean",
+          "description": "Whether this dependency is required.",
+          "default": true
+        },
+        "interaction": {
+          "type": "string",
+          "description": "Interaction mode (e.g., 'on_demand', 'always')."
+        }
+      }
+    },
+    "Metadata": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "owner": {
+          "type": "string",
+          "description": "Team or individual who owns this agent."
+        },
+        "tags": {
+          "type": "array",
+          "description": "Tags for discovery and categorization.",
+          "items": { "type": "string" }
+        },
+        "categories": {
+          "type": "object",
+          "description": "Structured categories.",
+          "additionalProperties": true,
+          "properties": {
+            "domain": { "type": "string" },
+            "function": { "type": "string" },
+            "maturity": { "type": "string" }
+          }
+        },
+        "license": {
+          "type": "string",
+          "description": "License identifier (e.g., 'MIT', 'PROPRIETARY')."
+        },
+        "author": {
+          "type": "object",
+          "description": "Author information.",
+          "additionalProperties": true,
+          "properties": {
+            "name": { "type": "string" },
+            "email": { "type": "string" }
+          }
+        },
+        "repository": {
+          "type": "string",
+          "description": "Source repository URL."
+        },
+        "changelog": {
+          "type": "string",
+          "description": "Inline changelog."
+        }
+      }
+    }
+  }
+}
