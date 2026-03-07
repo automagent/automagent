@@ -13,7 +13,12 @@
       "require": "./dist/index.cjs"
     },
     "./v1.schema.json": "./src/v1.schema.json",
-    "./compose.schema.json": "./src/compose.schema.json"
+    "./compose.schema.json": "./src/compose.schema.json",
+    "./fixtures": {
+      "types": "./dist/fixtures.d.ts",
+      "import": "./dist/fixtures.js",
+      "require": "./dist/fixtures.cjs"
+    }
   },
   "files": [
     "dist",

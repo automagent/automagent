@@ -450,3 +450,10 @@ export function validateCompose(data: unknown): ValidationResult {
 
 // Re-export schemas for direct access
 export { agentSchema, composeSchema };
+
+// Re-export shared fixtures for cross-package testing
+export * as fixtures from './fixtures.js';
+
+// Export the name pattern for use by consumers (avoids duplication)
+export const NAME_PATTERN = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/;
+export const NAME_MAX_LENGTH = 128;
