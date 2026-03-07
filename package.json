@@ -1,0 +1,26 @@
+{
+  "name": "automagent-core",
+  "private": true,
+  "workspaces": [
+    "packages/schema",
+    "packages/cli"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/automagent/automagent.git"
+  },
+  "homepage": "https://automagent.dev",
+  "license": "Apache-2.0",
+  "scripts": {
+    "build": "npm run build -w @automagent/schema && npm run build -w automagent",
+    "test": "npm run test -w @automagent/schema && npm run test -w automagent",
+    "lint": "npm run lint -w @automagent/schema && npm run lint -w automagent",
+    "clean": "npm run clean -w @automagent/schema && npm run clean -w automagent"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^4.0.18"
+  }
+}

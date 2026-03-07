@@ -1,0 +1,31 @@
+name: Schema Feedback
+description: Provide feedback on the agent.yaml schema
+labels: ["schema"]
+body:
+  - type: dropdown
+    id: feedback-type
+    attributes:
+      label: Feedback Type
+      options:
+        - Missing field
+        - Field should be required
+        - Field should be optional
+        - Type should change
+        - New feature area
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Describe your feedback in detail.
+    validations:
+      required: true
+  - type: textarea
+    id: example-agent-yaml
+    attributes:
+      label: Example agent.yaml
+      description: Provide an example agent.yaml that illustrates your feedback.
+      render: yaml
+    validations:
+      required: false
