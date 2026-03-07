@@ -5,12 +5,12 @@ import type { Command } from 'commander';
 import { stringify } from 'yaml';
 import chalk from 'chalk';
 import { success, warn, error, info, heading } from '../utils/output.js';
+import { NAME_PATTERN, NAME_MAX_LENGTH } from '@automagent/schema';
 
 const DEFAULT_MODEL = 'claude-sonnet-4-20250514';
 const DEFAULT_NAME = 'my-agent';
 const DEFAULT_DESCRIPTION = 'A helpful assistant';
 const DEFAULT_INSTRUCTIONS = 'You are a helpful assistant.';
-const NAME_PATTERN = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/;
 const SCHEMA_DIRECTIVE = '# yaml-language-server: $schema=https://automagent.dev/schema/v1.json';
 
 interface AgentConfig {
@@ -21,7 +21,7 @@ interface AgentConfig {
 }
 
 function validateName(name: string): boolean {
-  return NAME_PATTERN.test(name);
+  return NAME_PATTERN.test(name) && name.length <= NAME_MAX_LENGTH;
 }
 
 function buildYaml(config: AgentConfig): string {

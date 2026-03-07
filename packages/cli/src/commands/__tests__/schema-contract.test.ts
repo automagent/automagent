@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { validate, fixtures } from '@automagent/schema';
+import { validate, fixtures, NAME_PATTERN, NAME_MAX_LENGTH } from '@automagent/schema';
+import agentSchema from '@automagent/schema/v1.schema.json' with { type: 'json' };
 import { importCrewAI } from '../../importers/crewai.js';
 import { importOpenAI } from '../../importers/openai.js';
 import { importLangChain } from '../../importers/langchain.js';
@@ -112,5 +113,122 @@ describe('importer output — schema contract', () => {
         expect(result['model']).toBeDefined();
       });
     }
+  });
+});
+
+// =============================================================================
+// 3. Structural parity — schema JSON matches expectations
+// =============================================================================
+
+describe('structural parity', () => {
+  it('schema requires exactly name, description, model', () => {
+    expect(agentSchema.required).toEqual(['name', 'description', 'model']);
+  });
+
+  it('schema name pattern matches exported NAME_PATTERN', () => {
+    const schemaPattern = (agentSchema.properties.name as { pattern: string }).pattern;
+    expect(schemaPattern).toBe(NAME_PATTERN.source);
+  });
+
+  it('schema name maxLength matches exported NAME_MAX_LENGTH', () => {
+    const schemaMax = (agentSchema.properties.name as { maxLength: number }).maxLength;
+    expect(schemaMax).toBe(NAME_MAX_LENGTH);
+  });
+
+  it('schema kind enum is agent and team', () => {
+    const kindEnum = (agentSchema.properties.kind as { enum: string[] }).enum;
+    expect(kindEnum).toEqual(['agent', 'team']);
+  });
+
+  it('schema transport enum is stdio and streamable-http', () => {
+    const def = (agentSchema.definitions as Record<string, { properties: Record<string, { enum?: string[] }> }>)['McpServerConfig'];
+    expect(def.properties.transport.enum).toEqual(['stdio', 'streamable-http']);
+  });
+
+  it('schema guardrail action enum is block, warn, transform, log', () => {
+    const def = (agentSchema.definitions as Record<string, { properties: Record<string, { enum?: string[] }> }>)['GuardrailRule'];
+    expect(def.properties.action.enum).toEqual(['block', 'warn', 'transform', 'log']);
+  });
+
+  it('ToolDefinition requires name', () => {
+    const def = (agentSchema.definitions as Record<string, { required?: string[] }>)['ToolDefinition'];
+    expect(def.required).toContain('name');
+  });
+
+  it('McpServerConfig requires name and transport', () => {
+    const def = (agentSchema.definitions as Record<string, { required?: string[] }>)['McpServerConfig'];
+    expect(def.required).toEqual(expect.arrayContaining(['name', 'transport']));
+  });
+
+  it('AgentDependency requires ref', () => {
+    const def = (agentSchema.definitions as Record<string, { required?: string[] }>)['AgentDependency'];
+    expect(def.required).toContain('ref');
+  });
+
+  it('ModelConfig requires id', () => {
+    const def = (agentSchema.definitions as Record<string, { required?: string[] }>)['ModelConfig'];
+    expect(def.required).toContain('id');
+  });
+});
+
+// =============================================================================
+// 4. Edge cases and boundary tests
+// =============================================================================
+
+describe('schema edge cases', () => {
+  it('name at max length (128) validates', () => {
+    expect(validate(fixtures.MAX_LENGTH_NAME).valid).toBe(true);
+  });
+
+  it('name over max length (129) is rejected', () => {
+    expect(validate(fixtures.INVALID_NAME_TOO_LONG).valid).toBe(false);
+  });
+
+  it('single-char name validates', () => {
+    expect(validate({ name: 'a', description: 'd', model: 'm' }).valid).toBe(true);
+  });
+
+  it('empty tools array validates', () => {
+    expect(validate({ ...fixtures.MINIMAL, tools: [] }).valid).toBe(true);
+  });
+
+  it('tool with only name validates', () => {
+    expect(validate({ ...fixtures.MINIMAL, tools: [{ name: 'x' }] }).valid).toBe(true);
+  });
+
+  it('model as number is rejected', () => {
+    expect(validate({ name: 'a', description: 'd', model: 42 }).valid).toBe(false);
+  });
+
+  it('model as boolean is rejected', () => {
+    expect(validate({ name: 'a', description: 'd', model: true }).valid).toBe(false);
+  });
+
+  it('model as array is rejected', () => {
+    expect(validate({ name: 'a', description: 'd', model: ['gpt-4'] }).valid).toBe(false);
+  });
+
+  it('model object missing id is rejected', () => {
+    expect(validate({ name: 'a', description: 'd', model: { provider: 'anthropic' } }).valid).toBe(false);
+  });
+
+  it('mcp server missing transport is rejected', () => {
+    expect(validate({ ...fixtures.MINIMAL, mcp: [{ name: 'x' }] }).valid).toBe(false);
+  });
+
+  it('mcp transport with invalid enum is rejected', () => {
+    expect(validate({ ...fixtures.MINIMAL, mcp: [{ name: 'x', transport: 'grpc' }] }).valid).toBe(false);
+  });
+
+  it('guardrail action with invalid enum is rejected', () => {
+    expect(validate({ ...fixtures.MINIMAL, guardrails: { input: [{ action: 'delete' }] } }).valid).toBe(false);
+  });
+
+  it('dependency agent missing ref is rejected', () => {
+    expect(validate({ ...fixtures.MINIMAL, dependencies: { agents: [{ role: 'helper' }] } }).valid).toBe(false);
+  });
+
+  it('unknown top-level fields are allowed', () => {
+    expect(validate(fixtures.FORWARD_COMPAT).valid).toBe(true);
   });
 });
