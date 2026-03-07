@@ -1,3 +1,5 @@
+import { slugify } from '../utils/slugify.js';
+
 export interface LangChainConfig {
   prompt?: string | { template?: string; [key: string]: unknown };
   llm?: string | { model_name?: string; [key: string]: unknown };
@@ -5,10 +7,6 @@ export interface LangChainConfig {
   tools?: Array<string | { name: string; description?: string; [key: string]: unknown }>;
   agent_type?: string;
   [key: string]: unknown;
-}
-
-function slugify(s: string): string {
-  return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'imported-agent';
 }
 
 export function importLangChain(data: LangChainConfig, filename?: string): Record<string, unknown> {
@@ -30,6 +28,9 @@ export function importLangChain(data: LangChainConfig, filename?: string): Recor
       result['instructions'] = data.prompt;
     } else if (data.prompt.template) {
       result['instructions'] = data.prompt.template;
+    } else {
+      // Prompt object without template — store raw in extensions for review
+      result['instructions'] = `[Imported prompt object — review and convert manually]`;
     }
   }
 

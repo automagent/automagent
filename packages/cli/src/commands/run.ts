@@ -40,7 +40,7 @@ export function detectProvider(model: string | ModelConfig): ProviderInfo {
   if (lower.includes('claude') || lower.includes('anthropic')) {
     return { provider: 'anthropic', envVar: PROVIDER_ENV.anthropic };
   }
-  if (lower.includes('gpt') || lower.includes('openai') || lower.includes('o1') || lower.includes('o3')) {
+  if (lower.includes('gpt') || lower.includes('openai') || /\bo[13](-|$)/.test(lower)) {
     return { provider: 'openai', envVar: PROVIDER_ENV.openai };
   }
 
@@ -63,6 +63,21 @@ export function resolveInstructions(def: AgentDefinition): string {
   // Structured instructions: extract system prompt
   if (typeof instr.system === 'string') {
     return instr.system;
+  }
+  // File reference: return placeholder with path (runtime should read the file)
+  if (instr.system && typeof instr.system === 'object' && 'file' in instr.system) {
+    const filePath = (instr.system as { file: string }).file;
+    return `[System prompt from file: ${filePath}]`;
+  }
+  // Persona-only: construct prompt from persona fields
+  if (instr.persona) {
+    const parts: string[] = [];
+    if (instr.persona.role) parts.push(`You are a ${instr.persona.role}.`);
+    if (instr.persona.tone) parts.push(`Communicate in a ${instr.persona.tone} tone.`);
+    if (instr.persona.expertise && instr.persona.expertise.length > 0) {
+      parts.push(`Your expertise: ${(instr.persona.expertise as readonly string[]).join(', ')}.`);
+    }
+    if (parts.length > 0) return parts.join(' ');
   }
   return `You are ${def.name}. ${def.description}`;
 }
@@ -114,6 +129,7 @@ export function runCommand(program: Command): void {
         name: t.name,
         description: t.description,
         inputSchema: t.inputSchema,
+        ...(t.annotations ? { annotations: t.annotations } : {}),
       }));
 
       const config: RunConfig = {

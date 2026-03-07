@@ -1,3 +1,5 @@
+import { slugify } from '../utils/slugify.js';
+
 export interface CrewAIAgent {
   role: string;
   goal: string;
@@ -7,10 +9,6 @@ export interface CrewAIAgent {
   verbose?: boolean;
   allow_delegation?: boolean;
   [key: string]: unknown;
-}
-
-function slugify(s: string): string {
-  return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'imported-agent';
 }
 
 const MODEL_MAP: Record<string, string> = {

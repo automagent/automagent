@@ -1,3 +1,5 @@
+import { slugify } from '../utils/slugify.js';
+
 export interface OpenAIAgentConfig {
   name: string;
   instructions?: string;
@@ -12,10 +14,6 @@ export interface OpenAIAgentConfig {
   }>;
   handoffs?: Array<string | { name: string; [key: string]: unknown }>;
   [key: string]: unknown;
-}
-
-function slugify(s: string): string {
-  return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'imported-agent';
 }
 
 export function importOpenAI(data: OpenAIAgentConfig): Record<string, unknown> {
@@ -58,10 +56,8 @@ export function importOpenAI(data: OpenAIAgentConfig): Record<string, unknown> {
   // Map handoffs to dependencies.agents
   if (data.handoffs && data.handoffs.length > 0) {
     const agents = data.handoffs.map((handoff) => {
-      if (typeof handoff === 'string') {
-        return { ref: handoff, role: 'handoff' };
-      }
-      return { ref: handoff.name, role: 'handoff' };
+      const name = typeof handoff === 'string' ? handoff : handoff.name;
+      return { ref: slugify(name), role: 'handoff' };
     });
     result['dependencies'] = { agents };
   }

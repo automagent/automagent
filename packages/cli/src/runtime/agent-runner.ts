@@ -9,7 +9,7 @@ export interface RunConfig {
   model: string;
   provider: 'anthropic' | 'openai';
   instructions: string;
-  tools: Array<{ name: string; description?: string; inputSchema?: Record<string, unknown> }>;
+  tools: Array<{ name: string; description?: string; inputSchema?: Record<string, unknown>; annotations?: Record<string, unknown> }>;
 }
 
 export async function runAgent(config: RunConfig): Promise<void> {

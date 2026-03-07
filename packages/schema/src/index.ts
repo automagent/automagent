@@ -20,18 +20,19 @@ export interface ModelConfig {
   /** Model-specific settings */
   settings?: {
     temperature?: number;
+    /** Must be a whole number (JSON Schema type: integer) */
     max_tokens?: number;
     [key: string]: unknown;
   };
   /** Fallback model if primary is unavailable */
   fallback?: {
-    id: string;
+    id?: string;
     provider?: string;
     [key: string]: unknown;
   };
   /** Compatible models with compatibility scores */
   compatible?: Array<{
-    id: string;
+    id?: string;
     score?: number;
     [key: string]: unknown;
   }>;
@@ -194,7 +195,7 @@ export interface AgentDependency {
   ref: string;
   /** Role this dependency plays */
   role?: string;
-  /** Whether this dependency is required */
+  /** Whether this dependency is required. Defaults to true. */
   required?: boolean;
   /** Interaction mode */
   interaction?: string;
@@ -238,17 +239,17 @@ export interface Metadata {
  * All other fields are optional and support progressive disclosure.
  */
 export interface AgentDefinition {
-  /** Machine-readable slug. Pattern: ^[a-z0-9][a-z0-9-]*$ */
+  /** Machine-readable slug. Pattern: ^[a-z0-9]([a-z0-9-]*[a-z0-9])?$ maxLength: 128 */
   name: string;
-  /** Human-readable description of what the agent does */
+  /** Human-readable description of what the agent does. minLength: 1 */
   description: string;
   /** Model identifier (string) or full model configuration (object) */
   model: string | ModelConfig;
   /** Schema version. Defaults to "v1". */
   apiVersion?: string;
-  /** Definition type: "agent" or "team" */
+  /** Definition type: "agent" or "team". Defaults to "agent". */
   kind?: 'agent' | 'team';
-  /** Semver of this agent definition */
+  /** Semver of this agent definition. Defaults to "0.1.0". */
   version?: string;
   /** System prompt (string) or structured instructions (object) */
   instructions?: string | InstructionsConfig;
@@ -335,17 +336,17 @@ export interface Workflow {
  * Required: `name`, `description`, `agents`.
  */
 export interface ComposeDefinition {
-  /** Machine-readable slug */
+  /** Machine-readable slug. Pattern: ^[a-z0-9]([a-z0-9-]*[a-z0-9])?$ maxLength: 128 */
   name: string;
-  /** Human-readable description */
+  /** Human-readable description. minLength: 1 */
   description: string;
-  /** Agent references participating in this composition */
+  /** Agent references participating in this composition. minItems: 1 */
   agents: AgentRef[];
-  /** Schema version */
+  /** Schema version. Defaults to "v1". */
   apiVersion?: string;
   /** Must be "compose" */
   kind?: 'compose';
-  /** Semver of this composition */
+  /** Semver of this composition. Defaults to "0.1.0". */
   version?: string;
   /** Workflow orchestration */
   workflow?: Workflow;

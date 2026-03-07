@@ -14,6 +14,7 @@ const DEFAULT_INSTRUCTIONS = 'You are a helpful assistant.';
 const SCHEMA_DIRECTIVE = '# yaml-language-server: $schema=https://automagent.dev/schema/v1.json';
 
 interface AgentConfig {
+  apiVersion: string;
   name: string;
   description: string;
   model: string;
@@ -60,7 +61,7 @@ async function promptForConfig(): Promise<AgentConfig> {
     const instructions = instrInput.trim() || DEFAULT_INSTRUCTIONS;
 
     console.log();
-    return { name, description, model, instructions };
+    return { apiVersion: 'v1', name, description, model, instructions };
   } finally {
     rl.close();
   }
@@ -81,6 +82,7 @@ function buildQuickConfig(opts: {
   }
 
   return {
+    apiVersion: 'v1',
     name,
     description: opts.description ?? DEFAULT_DESCRIPTION,
     model: opts.model ?? DEFAULT_MODEL,

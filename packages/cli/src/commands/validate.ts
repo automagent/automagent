@@ -11,7 +11,15 @@ import { success, warn, error, info, heading } from '../utils/output.js';
  */
 const UNPINNED_MODEL_PATTERNS: ReadonlySet<string> = new Set([
   'gpt-4',
+  'gpt-4o',
+  'gpt-4o-mini',
+  'gpt-4-turbo',
   'gpt-3.5-turbo',
+  'o1',
+  'o1-mini',
+  'o1-preview',
+  'o3',
+  'o3-mini',
   'claude-sonnet',
   'claude-haiku',
   'claude-opus',
@@ -181,6 +189,36 @@ function runChecks(
     }
   } else {
     info('No context files defined');
+  }
+
+  // -------------------------------------------------------------------------
+  // 5. Instruction file reference check
+  // -------------------------------------------------------------------------
+  heading('Instruction files');
+
+  const instructions = record['instructions'];
+
+  if (instructions && typeof instructions === 'object' && !Array.isArray(instructions)) {
+    const instrObj = instructions as Record<string, unknown>;
+    const system = instrObj['system'];
+    if (system && typeof system === 'object' && !Array.isArray(system)) {
+      const systemObj = system as Record<string, unknown>;
+      if (typeof systemObj['file'] === 'string') {
+        const filePath = resolve(yamlDir, systemObj['file']);
+        if (!existsSync(filePath)) {
+          warn(`Instruction file not found: ${systemObj['file']} (resolved to ${filePath})`);
+          warnings++;
+        } else {
+          success('Instruction file reference exists');
+        }
+      } else {
+        info('No instruction file references');
+      }
+    } else {
+      info('No instruction file references');
+    }
+  } else {
+    info('No instruction file references');
   }
 
   return { warnings, errors: errors_ };

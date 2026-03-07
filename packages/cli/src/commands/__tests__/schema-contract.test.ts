@@ -288,11 +288,11 @@ describe('CLI handles all instruction shapes', () => {
     expect(resolveInstructions({ ...base, instructions: { system: 'System prompt.' } } as AgentDefinition)).toBe('System prompt.');
   });
 
-  it('object with system file ref — falls back', () => {
-    expect(resolveInstructions({ ...base, instructions: { system: { file: './p.md' } } } as AgentDefinition)).toBe('You are test. Test agent');
+  it('object with system file ref — returns placeholder with path', () => {
+    expect(resolveInstructions({ ...base, instructions: { system: { file: './p.md' } } } as AgentDefinition)).toBe('[System prompt from file: ./p.md]');
   });
 
-  it('object with only persona — falls back', () => {
-    expect(resolveInstructions({ ...base, instructions: { persona: { role: 'Analyst' } } } as AgentDefinition)).toBe('You are test. Test agent');
+  it('object with only persona — constructs prompt from persona fields', () => {
+    expect(resolveInstructions({ ...base, instructions: { persona: { role: 'Analyst' } } } as AgentDefinition)).toBe('You are a Analyst.');
   });
 });
