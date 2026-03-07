@@ -1,0 +1,4 @@
+# yaml-language-server: $schema=https://automagent.dev/schema/v1.json
+name: my-agent
+description: Answers questions about our codebase
+model: claude-sonnet
