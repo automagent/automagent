@@ -4,6 +4,8 @@ import agentSchema from '@automagent/schema/v1.schema.json' with { type: 'json' 
 import { importCrewAI } from '../../importers/crewai.js';
 import { importOpenAI } from '../../importers/openai.js';
 import { importLangChain } from '../../importers/langchain.js';
+import { detectProvider, resolveModelString, resolveInstructions } from '../../commands/run.js';
+import type { AgentDefinition } from '@automagent/schema';
 
 // =============================================================================
 // 1. Shared fixtures validate through schema (cross-package contract)
@@ -230,5 +232,67 @@ describe('schema edge cases', () => {
 
   it('unknown top-level fields are allowed', () => {
     expect(validate(fixtures.FORWARD_COMPAT).valid).toBe(true);
+  });
+});
+
+// =============================================================================
+// 5. Round-trip — CLI functions handle all schema-valid shapes
+// =============================================================================
+
+describe('CLI handles all model shapes', () => {
+  it('resolveModelString with string model', () => {
+    expect(resolveModelString('gpt-4')).toBe('gpt-4');
+  });
+
+  it('resolveModelString with object model', () => {
+    expect(resolveModelString({ id: 'claude-sonnet-4-20250514', provider: 'anthropic' })).toBe('claude-sonnet-4-20250514');
+  });
+
+  it('detectProvider with string claude model', () => {
+    const info = detectProvider('claude-sonnet-4-20250514');
+    expect(info.provider).toBe('anthropic');
+    expect(info.envVar).toBe('ANTHROPIC_API_KEY');
+  });
+
+  it('detectProvider with string gpt model', () => {
+    const info = detectProvider('gpt-4o');
+    expect(info.provider).toBe('openai');
+    expect(info.envVar).toBe('OPENAI_API_KEY');
+  });
+
+  it('detectProvider with object model with explicit provider', () => {
+    expect(detectProvider({ id: 'custom', provider: 'anthropic' }).provider).toBe('anthropic');
+  });
+
+  it('detectProvider with object model without provider falls back to id', () => {
+    expect(detectProvider({ id: 'claude-sonnet-4-20250514' }).provider).toBe('anthropic');
+  });
+
+  it('detectProvider defaults to anthropic for unknown model', () => {
+    expect(detectProvider('some-unknown-model').provider).toBe('anthropic');
+  });
+});
+
+describe('CLI handles all instruction shapes', () => {
+  const base = { name: 'test', description: 'Test agent', model: 'gpt-4' };
+
+  it('no instructions — falls back to name + description', () => {
+    expect(resolveInstructions(base as AgentDefinition)).toBe('You are test. Test agent');
+  });
+
+  it('string instructions — returns the string', () => {
+    expect(resolveInstructions({ ...base, instructions: 'Be helpful.' } as AgentDefinition)).toBe('Be helpful.');
+  });
+
+  it('object with system string — returns system', () => {
+    expect(resolveInstructions({ ...base, instructions: { system: 'System prompt.' } } as AgentDefinition)).toBe('System prompt.');
+  });
+
+  it('object with system file ref — falls back', () => {
+    expect(resolveInstructions({ ...base, instructions: { system: { file: './p.md' } } } as AgentDefinition)).toBe('You are test. Test agent');
+  });
+
+  it('object with only persona — falls back', () => {
+    expect(resolveInstructions({ ...base, instructions: { persona: { role: 'Analyst' } } } as AgentDefinition)).toBe('You are test. Test agent');
   });
 });

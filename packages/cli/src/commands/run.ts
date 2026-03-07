@@ -19,7 +19,7 @@ const PROVIDER_ENV: Record<Provider, string> = {
   openai: 'OPENAI_API_KEY',
 };
 
-function detectProvider(model: string | ModelConfig): ProviderInfo {
+export function detectProvider(model: string | ModelConfig): ProviderInfo {
   // Object form: check explicit provider field first, then id string
   if (typeof model === 'object') {
     if (model.provider) {
@@ -48,11 +48,11 @@ function detectProvider(model: string | ModelConfig): ProviderInfo {
   return { provider: 'anthropic', envVar: PROVIDER_ENV.anthropic };
 }
 
-function resolveModelString(model: string | ModelConfig): string {
+export function resolveModelString(model: string | ModelConfig): string {
   return typeof model === 'object' ? model.id : model;
 }
 
-function resolveInstructions(def: AgentDefinition): string {
+export function resolveInstructions(def: AgentDefinition): string {
   const instr = def.instructions;
   if (!instr) {
     return `You are ${def.name}. ${def.description}`;
