@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { validate, validateCompose } from './index.js';
+import { VALID_FIXTURES, INVALID_FIXTURES } from './fixtures.js';
 
 // =============================================================================
 // Agent Definition Validation (v1.schema.json)
@@ -499,4 +500,28 @@ describe('validateCompose — compose definition', () => {
     });
     expect(result.valid).toBe(true);
   });
+});
+
+// =============================================================================
+// Shared Fixture Validation
+// =============================================================================
+
+describe('shared fixtures — valid', () => {
+  for (const [name, fixture] of Object.entries(VALID_FIXTURES)) {
+    it(`validates ${name}`, () => {
+      const result = validate(fixture);
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+  }
+});
+
+describe('shared fixtures — invalid', () => {
+  for (const [name, fixture] of Object.entries(INVALID_FIXTURES)) {
+    it(`rejects ${name}`, () => {
+      const result = validate(fixture);
+      expect(result.valid).toBe(false);
+      expect(result.errors.length).toBeGreaterThan(0);
+    });
+  }
 });
