@@ -7,7 +7,7 @@ import { pushCommand } from './commands/push.js';
 import { pullCommand } from './commands/pull.js';
 import { searchCommand } from './commands/search.js';
 import { diffCommand } from './commands/diff.js';
-import { registerStubs } from './commands/stubs.js';
+import { registerLogin, registerLogout, registerWhoami } from './commands/login.js';
 
 const program = new Command();
 
@@ -24,6 +24,8 @@ pushCommand(program);
 pullCommand(program);
 searchCommand(program);
 diffCommand(program);
-registerStubs(program);
+registerLogin(program);
+registerLogout(program);
+registerWhoami(program);
 
 program.parse();
