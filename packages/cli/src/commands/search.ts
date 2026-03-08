@@ -38,7 +38,8 @@ export function searchCommand(program: Command): void {
         });
 
         if (!res.ok) {
-          error(`Hub returned ${res.status}: ${res.statusText}`);
+          const body = await res.json().catch(() => ({}));
+          error(`Hub returned ${res.status}: ${(body as Record<string, string>).error ?? res.statusText}`);
           process.exitCode = 1;
           return;
         }
