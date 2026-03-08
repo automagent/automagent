@@ -95,7 +95,8 @@ export function runCommand(program: Command): void {
       const { data, error: parseError } = parseYamlFile(filePath);
       if (parseError) {
         error(parseError);
-        process.exit(1);
+        process.exitCode = 1;
+        return;
       }
 
       // Validate against schema
@@ -106,7 +107,8 @@ export function runCommand(program: Command): void {
           const location = e.instancePath || '/';
           error(`  ${location}: ${e.message ?? 'validation error'}`);
         }
-        process.exit(1);
+        process.exitCode = 1;
+        return;
       }
 
       const def = data as AgentDefinition;
@@ -120,7 +122,8 @@ export function runCommand(program: Command): void {
       if (!process.env[envVar]) {
         error(`Missing API key. Set the ${envVar} environment variable.`);
         info(`Export it in your shell: export ${envVar}=sk-...`);
-        process.exit(1);
+        process.exitCode = 1;
+        return;
       }
 
       heading(`Running ${def.name}`);

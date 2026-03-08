@@ -3,7 +3,6 @@ import { validate, fixtures, NAME_PATTERN, NAME_MAX_LENGTH } from '@automagent/s
 import agentSchema from '@automagent/schema/v1.schema.json' with { type: 'json' };
 import { importCrewAI } from '../../importers/crewai.js';
 import { importOpenAI } from '../../importers/openai.js';
-import { importLangChain } from '../../importers/langchain.js';
 import { detectProvider, resolveModelString, resolveInstructions } from '../../commands/run.js';
 import type { AgentDefinition } from '@automagent/schema';
 
@@ -83,27 +82,10 @@ describe('importer output — schema contract', () => {
     });
   });
 
-  describe('LangChain importer', () => {
-    it('minimal LangChain import produces valid output', () => {
-      expect(validate(importLangChain({}, 'my-agent.json')).valid).toBe(true);
-    });
-
-    it('LangChain import with all fields produces valid output', () => {
-      const result = importLangChain({
-        prompt: { template: 'You are helpful.' },
-        llm: { model_name: 'gpt-4-turbo' },
-        tools: ['serpapi', 'llm-math'],
-        agent_type: 'zero-shot-react-description',
-      });
-      expect(validate(result).valid).toBe(true);
-    });
-  });
-
   describe('all importers set required fields', () => {
     const cases = [
       { name: 'CrewAI', fn: () => importCrewAI({ role: 'r', goal: 'g', backstory: 'b' }) },
       { name: 'OpenAI', fn: () => importOpenAI({ name: 'bot' }) },
-      { name: 'LangChain', fn: () => importLangChain({}) },
     ];
     for (const { name, fn } of cases) {
       it(`${name} output has name, description, and model`, () => {

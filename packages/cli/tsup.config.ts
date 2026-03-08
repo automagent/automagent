@@ -8,5 +8,14 @@ export default defineConfig({
   banner: {
     js: '#!/usr/bin/env node',
   },
-  external: ['@anthropic-ai/sdk', 'openai'],
+  noExternal: [],
+  external: [
+    '@anthropic-ai/sdk',
+    'openai',
+    'commander',
+    'chalk',
+    'yaml',
+    'ora',
+    '@automagent/schema',
+  ],
 });

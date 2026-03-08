@@ -1,6 +1,6 @@
 # @automagent/cli
 
-The CLI toolkit for the [automagent](https://github.com/automagent/automagent) agent definition standard. Define AI agents in YAML, validate them, run them interactively, and import from other frameworks.
+The CLI toolkit for the [automagent](https://github.com/automagent/automagent) agent definition standard. Define AI agents in YAML, validate them, run them interactively, and import from CrewAI and OpenAI formats.
 
 ## Install
 
@@ -73,7 +73,6 @@ Converts agent definitions from other frameworks into automagent format.
 ```bash
 automagent import crew_config.yaml                  # Auto-detect format
 automagent import assistant.json --format openai     # Specify format
-automagent import agent.py --format langchain -o my-agent.yaml
 automagent import config.yaml --force                # Overwrite output
 ```
 
@@ -83,7 +82,6 @@ automagent import config.yaml --force                # Overwrite output
 |--------|-------|-----------|
 | CrewAI | YAML with `role` + `goal` + `backstory` | Auto |
 | OpenAI Assistants | JSON with `instructions` + `model` | Auto |
-| LangChain | JSON/Python with `prompt`, `llm_chain`, or `agent_executor` | Auto |
 
 Unmapped fields are preserved under `extensions.<framework>` in the output. A `# TODO: Review` comment is added to fields that may need manual adjustment.
 

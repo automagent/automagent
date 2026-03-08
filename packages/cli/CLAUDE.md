@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Is
 
-`@automagent/cli` — a CLI toolkit for the automagent agent definition standard. Defines agents in YAML, validates them against a schema, runs them interactively via Anthropic or OpenAI, and imports from other frameworks (CrewAI, OpenAI Assistants, LangChain).
+`@automagent/cli` — a CLI toolkit for the automagent agent definition standard. Defines agents in YAML, validates them against a schema, runs them interactively via Anthropic or OpenAI, and imports from CrewAI and OpenAI Assistants formats.
 
 ## Commands
 
@@ -36,7 +36,7 @@ The `run` command auto-detects provider from model name (`claude-*` → Anthropi
 Four-step validation: JSON schema check (via `@automagent/schema`), model pinning warning, secret detection (scans all strings for API key patterns and high-entropy base64), and context file existence verification.
 
 ### Framework Importers (`src/importers/`)
-Convert CrewAI, OpenAI Assistants, and LangChain formats to automagent YAML. Unmapped fields are preserved in `extensions.<framework>`. Schema validation runs post-import.
+Convert CrewAI and OpenAI Assistants formats to automagent YAML. Unmapped fields are preserved in `extensions.<framework>`. Schema validation runs post-import.
 
 ### Utilities
 - `src/utils/output.ts` — Colored console helpers (chalk)
@@ -52,4 +52,4 @@ Convert CrewAI, OpenAI Assistants, and LangChain formats to automagent YAML. Unm
 
 ## Testing
 
-All tests live in `src/commands/__tests__/commands.test.ts` using vitest. Tests cover YAML parsing, all three importers, tool mocker, and CLI commands (validate, init) via subprocess integration.
+All tests live in `src/commands/__tests__/commands.test.ts` using vitest. Tests cover YAML parsing, both importers, tool mocker, and CLI commands (validate, init) via subprocess integration.

@@ -245,7 +245,8 @@ export function validateCommand(program: Command): void {
         const lineInfo =
           parseResult.line !== null ? ` (line ${parseResult.line})` : '';
         error(`YAML parse error${lineInfo}: ${parseResult.error}`);
-        process.exit(1);
+        process.exitCode = 1;
+        return;
       }
 
       // Step 2-5: Run all validation checks
@@ -261,7 +262,7 @@ export function validateCommand(program: Command): void {
         error(
           `Validation failed with ${errorCount} error(s) and ${warnings} warning(s).`,
         );
-        process.exit(1);
+        process.exitCode = 1;
       }
 
       if (warnings > 0) {

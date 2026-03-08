@@ -7,7 +7,6 @@ import { tmpdir } from 'node:os';
 import { parseYamlFile, parseYamlString } from '../../utils/yaml.js';
 import { importCrewAI } from '../../importers/crewai.js';
 import { importOpenAI } from '../../importers/openai.js';
-import { importLangChain } from '../../importers/langchain.js';
 import { mockToolResponse } from '../../runtime/tool-mocker.js';
 
 const CLI_PATH = join(import.meta.dirname, '..', '..', '..', 'dist', 'index.js');
@@ -246,60 +245,6 @@ describe('OpenAI importer', () => {
 
 // Type alias to allow extra fields via the index signature
 type OpenAIInput = Parameters<typeof importOpenAI>[0];
-
-describe('LangChain importer', () => {
-  it('derives name from filename', () => {
-    const result = importLangChain({}, 'my_agent_config.json');
-    expect(result['name']).toBe('my-agent-config');
-  });
-
-  it('uses imported-agent as default name when no filename', () => {
-    const result = importLangChain({});
-    expect(result['name']).toBe('imported-agent');
-  });
-
-  it('extracts instructions from string prompt', () => {
-    const result = importLangChain({ prompt: 'You are helpful.' });
-    expect(result['instructions']).toBe('You are helpful.');
-  });
-
-  it('extracts instructions from prompt template object', () => {
-    const result = importLangChain({ prompt: { template: 'Be concise.' } });
-    expect(result['instructions']).toBe('Be concise.');
-  });
-
-  it('extracts model from llm string', () => {
-    const result = importLangChain({ llm: 'gpt-4-turbo' });
-    expect(result['model']).toBe('gpt-4-turbo');
-  });
-
-  it('extracts model from llm object with model_name', () => {
-    const result = importLangChain({ llm: { model_name: 'claude-3-opus' } });
-    expect(result['model']).toBe('claude-3-opus');
-  });
-
-  it('falls back to model field when llm is absent', () => {
-    const result = importLangChain({ model: 'gpt-3.5-turbo' });
-    expect(result['model']).toBe('gpt-3.5-turbo');
-  });
-
-  it('defaults model to gpt-4 when neither llm nor model present', () => {
-    const result = importLangChain({});
-    expect(result['model']).toBe('gpt-4');
-  });
-
-  it('maps agent_type into extensions.langchain', () => {
-    const result = importLangChain({ agent_type: 'zero-shot-react-description' });
-    const ext = result['extensions'] as Record<string, unknown>;
-    const lc = ext['langchain'] as Record<string, unknown>;
-    expect(lc['agent_type']).toBe('zero-shot-react-description');
-  });
-
-  it('maps string tools to objects with name', () => {
-    const result = importLangChain({ tools: ['serpapi', 'llm-math'] });
-    expect(result['tools']).toEqual([{ name: 'serpapi' }, { name: 'llm-math' }]);
-  });
-});
 
 // ---------------------------------------------------------------------------
 // 3. Tool mocker

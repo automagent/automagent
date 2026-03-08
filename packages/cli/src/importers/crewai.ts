@@ -1,4 +1,5 @@
 import { slugify } from '../utils/slugify.js';
+import { DEFAULT_IMPORT_MODEL } from '../utils/constants.js';
 
 export interface CrewAIAgent {
   role: string;
@@ -37,7 +38,7 @@ export function importCrewAI(data: CrewAIAgent): Record<string, unknown> {
       result['# TODO: Review model'] = `Unknown model "${data.llm}" - verify this is a valid model identifier`;
     }
   } else {
-    result['model'] = 'gpt-4'; // TODO: Review - default model
+    result['model'] = DEFAULT_IMPORT_MODEL;
   }
 
   if (data.tools && data.tools.length > 0) {

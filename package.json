@@ -5,8 +5,11 @@
     "packages/schema",
     "packages/cli"
   ],
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
-    "build": "npm run build --workspaces",
+    "build": "npm run build -w packages/schema && npm run build -w packages/cli",
     "test": "npm run test --workspaces",
     "lint": "npm run lint --workspaces",
     "clean": "npm run clean --workspaces"

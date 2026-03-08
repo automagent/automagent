@@ -1,17 +1,15 @@
 import type { Command } from 'commander';
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
-import { resolve, extname, basename } from 'node:path';
+import { resolve, extname } from 'node:path';
 import { stringify } from 'yaml';
 import { validate } from '@automagent/schema';
 import { parseYamlFile } from '../utils/yaml.js';
 import { success, error, warn, info, heading } from '../utils/output.js';
 import { importCrewAI } from '../importers/crewai.js';
 import { importOpenAI } from '../importers/openai.js';
-import { importLangChain } from '../importers/langchain.js';
+import { SCHEMA_HEADER } from '../utils/constants.js';
 
-type SupportedFormat = 'crewai' | 'openai' | 'langchain';
-
-const SCHEMA_HEADER = '# yaml-language-server: $schema=https://automagent.dev/schema/v1.json';
+type SupportedFormat = 'crewai' | 'openai';
 const TODO_COMMENT = '# TODO: Review';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -29,13 +27,6 @@ function detectFormat(filePath: string, data: Record<string, unknown>): Supporte
   // OpenAI: JSON with instructions + model (+ optionally tools)
   if (ext === '.json' && 'instructions' in data && 'model' in data) {
     return 'openai';
-  }
-
-  // LangChain: .py or .json with prompt/llm_chain/agent_executor
-  if (ext === '.py' || ext === '.json') {
-    if ('prompt' in data || 'llm_chain' in data || 'agent_executor' in data) {
-      return 'langchain';
-    }
   }
 
   return null;
@@ -64,28 +55,7 @@ function parseInputFile(filePath: string): Record<string, unknown> {
     return parsed;
   }
 
-  if (ext === '.py') {
-    // For Python files, we attempt to find embedded JSON config
-    // This is a best-effort heuristic for LangChain exports
-    const raw = readFileSync(filePath, 'utf-8');
-    const jsonMatch = raw.match(/\{[\s\S]*"(?:prompt|llm_chain|agent_executor)"[\s\S]*\}/);
-    if (jsonMatch) {
-      try {
-        const parsed: unknown = JSON.parse(jsonMatch[0]);
-        if (isRecord(parsed)) {
-          return parsed;
-        }
-      } catch {
-        // Fall through to error
-      }
-    }
-    throw new Error(
-      'Could not extract configuration from Python file. ' +
-      'Export your LangChain agent config as JSON and try again.'
-    );
-  }
-
-  throw new Error(`Unsupported file extension: ${ext}. Supported: .yaml, .yml, .json, .py`);
+  throw new Error(`Unsupported file extension: ${ext}. Supported: .yaml, .yml, .json`);
 }
 
 function addTodoComments(yamlStr: string, agentData: Record<string, unknown>): string {
@@ -143,7 +113,7 @@ export function importCommand(program: Command): void {
     .description('Import agent definition from another framework')
     .argument('<path>', 'Path to the source configuration file')
     .option('-o, --output <path>', 'Output file path', './agent.yaml')
-    .option('-f, --format <format>', 'Force source format (crewai|openai|langchain)')
+    .option('-f, --format <format>', 'Force source format (crewai|openai)')
     .option('--force', 'Overwrite existing output file', false)
     .action((inputPath: string, options: { output: string; format?: string; force: boolean }) => {
       const resolvedInput = resolve(inputPath);
@@ -179,10 +149,10 @@ export function importCommand(program: Command): void {
       // Detect or validate format
       let format: SupportedFormat;
       if (options.format) {
-        const valid: SupportedFormat[] = ['crewai', 'openai', 'langchain'];
+        const valid: SupportedFormat[] = ['crewai', 'openai'];
         if (!valid.includes(options.format as SupportedFormat)) {
           error(`Unknown format: ${options.format}`);
-          info('Supported formats: crewai, openai, langchain');
+          info('Supported formats: crewai, openai');
           process.exitCode = 1;
           return;
         }
@@ -194,7 +164,6 @@ export function importCommand(program: Command): void {
           info('Supported formats:');
           info('  crewai    - YAML with role + goal + backstory');
           info('  openai    - JSON with instructions + model');
-          info('  langchain - JSON/Python with prompt or llm_chain or agent_executor');
           info('Use --format <format> to specify explicitly');
           process.exitCode = 1;
           return;
@@ -211,12 +180,6 @@ export function importCommand(program: Command): void {
           break;
         case 'openai':
           agentData = importOpenAI(data as Parameters<typeof importOpenAI>[0]);
-          break;
-        case 'langchain':
-          agentData = importLangChain(
-            data as Parameters<typeof importLangChain>[0],
-            basename(resolvedInput),
-          );
           break;
       }
 

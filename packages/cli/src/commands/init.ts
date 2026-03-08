@@ -5,13 +5,13 @@ import type { Command } from 'commander';
 import { stringify } from 'yaml';
 import chalk from 'chalk';
 import { success, warn, error, info, heading } from '../utils/output.js';
+import { SCHEMA_HEADER } from '../utils/constants.js';
 import { NAME_PATTERN, NAME_MAX_LENGTH } from '@automagent/schema';
 
 const DEFAULT_MODEL = 'claude-sonnet-4-20250514';
 const DEFAULT_NAME = 'my-agent';
 const DEFAULT_DESCRIPTION = 'A helpful assistant';
 const DEFAULT_INSTRUCTIONS = 'You are a helpful assistant.';
-const SCHEMA_DIRECTIVE = '# yaml-language-server: $schema=https://automagent.dev/schema/v1.json';
 
 interface AgentConfig {
   apiVersion: string;
@@ -27,7 +27,7 @@ function validateName(name: string): boolean {
 
 function buildYaml(config: AgentConfig): string {
   const yamlBody = stringify(config, { lineWidth: 0 });
-  return `${SCHEMA_DIRECTIVE}\n${yamlBody}`;
+  return `${SCHEMA_HEADER}\n${yamlBody}`;
 }
 
 async function promptForConfig(): Promise<AgentConfig> {
@@ -75,10 +75,9 @@ function buildQuickConfig(opts: {
   const name = opts.name ?? DEFAULT_NAME;
 
   if (!validateName(name)) {
-    error(
+    throw new Error(
       `Invalid agent name "${name}". Must match: lowercase letters, numbers, and hyphens (e.g. my-agent)`,
     );
-    process.exit(1);
   }
 
   return {
@@ -90,7 +89,7 @@ function buildQuickConfig(opts: {
   };
 }
 
-function printNextSteps(filePath: string): void {
+function printNextSteps(): void {
   heading('Next steps');
   info(`Edit ${chalk.bold('agent.yaml')} to customize your agent definition`);
   info(`Run ${chalk.cyan('automagent validate')} to check your definition`);
@@ -111,17 +110,25 @@ export function initCommand(program: Command): void {
 
       if (existsSync(filePath) && !opts.force) {
         error('agent.yaml already exists. Use --force to overwrite.');
-        process.exit(1);
+        process.exitCode = 1;
+        return;
       }
 
-      const config = opts.quick
-        ? buildQuickConfig(opts)
-        : await promptForConfig();
+      let config: AgentConfig;
+      try {
+        config = opts.quick
+          ? buildQuickConfig(opts)
+          : await promptForConfig();
+      } catch (err) {
+        error(err instanceof Error ? err.message : String(err));
+        process.exitCode = 1;
+        return;
+      }
 
       const content = buildYaml(config);
       writeFileSync(filePath, content, 'utf-8');
 
       success(`Created ${chalk.bold('agent.yaml')}`);
-      printNextSteps(filePath);
+      printNextSteps();
     });
 }

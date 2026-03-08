@@ -1,4 +1,5 @@
 import { slugify } from '../utils/slugify.js';
+import { DEFAULT_IMPORT_MODEL } from '../utils/constants.js';
 
 export interface OpenAIAgentConfig {
   name: string;
@@ -26,7 +27,7 @@ export function importOpenAI(data: OpenAIAgentConfig): Record<string, unknown> {
     result['instructions'] = data.instructions;
   }
 
-  result['model'] = data.model ?? 'gpt-4';
+  result['model'] = data.model ?? DEFAULT_IMPORT_MODEL;
 
   // Separate function tools from other tool types
   const functionTools: Array<Record<string, unknown>> = [];
