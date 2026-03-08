@@ -27,7 +27,7 @@ npx vitest run -t "test name pattern"
 ### CLI Command Pattern
 Each command is a separate module in `src/commands/` exporting `registerCommand(program: Command): void`. Commands are registered in `src/index.ts`. The CLI binary is `automagent` (configured in package.json `bin`).
 
-Commands: `init`, `validate`, `run`, `import` (plus Phase 2 stubs in `stubs.ts`: push, pull, login, diff).
+Commands: `init`, `validate`, `run`, `import`, `push`, `pull`, `search`, `diff`. The `login` command is a stub in `stubs.ts` (registry auth not yet implemented).
 
 ### Provider Abstraction (`src/runtime/agent-runner.ts`)
 The `run` command auto-detects provider from model name (`claude-*` → Anthropic, `gpt-*` → OpenAI). SDKs are dynamically imported as optional peer dependencies — the CLI won't crash if they're missing until `run` is invoked.

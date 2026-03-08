@@ -16,9 +16,8 @@ npm run test
 |---------|------|-------------|
 | `@automagent/schema` | `packages/schema` | JSON Schema, TypeScript types, Ajv validator |
 | `@automagent/cli` | `packages/cli` | Reference CLI: init, validate, run, import |
-| `@automagent/registry` | `packages/registry` | Agent registry (planned) |
 
-**Build order:** Schema must build before CLI and registry. The root build script enforces this.
+**Build order:** Schema must build before CLI. The root build script enforces this.
 
 ## Running Tests
 
