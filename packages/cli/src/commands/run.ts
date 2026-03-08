@@ -1,4 +1,5 @@
-import { resolve } from 'node:path';
+import { resolve, dirname } from 'node:path';
+import { readFileSync, existsSync } from 'node:fs';
 import type { Command } from 'commander';
 import { parseYamlFile } from '../utils/yaml.js';
 import { validate } from '@automagent/schema';
@@ -52,7 +53,7 @@ export function resolveModelString(model: string | ModelConfig): string {
   return typeof model === 'object' ? model.id : model;
 }
 
-export function resolveInstructions(def: AgentDefinition): string {
+export function resolveInstructions(def: AgentDefinition, yamlDir?: string): string {
   const instr = def.instructions;
   if (!instr) {
     return `You are ${def.name}. ${def.description}`;
@@ -64,10 +65,14 @@ export function resolveInstructions(def: AgentDefinition): string {
   if (typeof instr.system === 'string') {
     return instr.system;
   }
-  // File reference: return placeholder with path (runtime should read the file)
+  // File reference: read the file content
   if (instr.system && typeof instr.system === 'object' && 'file' in instr.system) {
     const filePath = (instr.system as { file: string }).file;
-    return `[System prompt from file: ${filePath}]`;
+    const resolvedPath = yamlDir ? resolve(yamlDir, filePath) : resolve(filePath);
+    if (!existsSync(resolvedPath)) {
+      throw new Error(`Instruction file not found: ${resolvedPath}`);
+    }
+    return readFileSync(resolvedPath, 'utf-8').trim();
   }
   // Persona-only: construct prompt from persona fields
   if (instr.persona) {
@@ -139,7 +144,7 @@ export function runCommand(program: Command): void {
         name: def.name,
         model: modelString,
         provider,
-        instructions: resolveInstructions(def),
+        instructions: resolveInstructions(def, dirname(filePath)),
         tools,
       };
 

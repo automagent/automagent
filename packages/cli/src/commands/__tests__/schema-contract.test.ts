@@ -1,4 +1,7 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 import { validate, fixtures, NAME_PATTERN, NAME_MAX_LENGTH } from '@automagent/schema';
 import agentSchema from '@automagent/schema/v1.schema.json' with { type: 'json' };
 import { importCrewAI } from '../../importers/crewai.js';
@@ -310,8 +313,20 @@ describe('CLI handles all instruction shapes', () => {
     expect(resolveInstructions({ ...base, instructions: { system: 'System prompt.' } } as AgentDefinition)).toBe('System prompt.');
   });
 
-  it('object with system file ref — returns placeholder with path', () => {
-    expect(resolveInstructions({ ...base, instructions: { system: { file: './p.md' } } } as AgentDefinition)).toBe('[System prompt from file: ./p.md]');
+  it('object with system file ref — reads file content', () => {
+    const tmpDir = mkdtempSync(join(tmpdir(), 'instr-test-'));
+    try {
+      writeFileSync(join(tmpDir, 'prompt.md'), 'You are an expert analyst.');
+      const def = { ...base, instructions: { system: { file: './prompt.md' } } } as AgentDefinition;
+      expect(resolveInstructions(def, tmpDir)).toBe('You are an expert analyst.');
+    } finally {
+      rmSync(tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  it('object with system file ref — throws if file missing', () => {
+    const def = { ...base, instructions: { system: { file: './nonexistent.md' } } } as AgentDefinition;
+    expect(() => resolveInstructions(def, '/tmp')).toThrow(/not found/i);
   });
 
   it('object with only persona — constructs prompt from persona fields', () => {
