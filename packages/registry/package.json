@@ -33,5 +33,13 @@
   "engines": {
     "node": ">=18"
   },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/automagent/automagent.git",
+    "directory": "packages/registry"
+  },
   "license": "Apache-2.0"
 }
