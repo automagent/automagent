@@ -7,9 +7,10 @@ import { parseYamlFile } from '../utils/yaml.js';
 import { success, error, warn, info, heading } from '../utils/output.js';
 import { importCrewAI } from '../importers/crewai.js';
 import { importOpenAI } from '../importers/openai.js';
+import { importLangChain } from '../importers/langchain.js';
 import { SCHEMA_HEADER } from '../utils/constants.js';
 
-type SupportedFormat = 'crewai' | 'openai';
+type SupportedFormat = 'crewai' | 'openai' | 'langchain';
 const TODO_COMMENT = '# TODO: Review';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -27,6 +28,15 @@ function detectFormat(filePath: string, data: Record<string, unknown>): Supporte
   // OpenAI: JSON with instructions + model (+ optionally tools)
   if (ext === '.json' && 'instructions' in data && 'model' in data) {
     return 'openai';
+  }
+
+  // LangChain: JSON with prompt/system_message and/or agent_type/llm-object
+  if (ext === '.json') {
+    const hasPrompt = 'prompt' in data || 'system_message' in data;
+    const hasLangChainLlm = 'agent_type' in data || (typeof data['llm'] === 'object' && data['llm'] !== null);
+    if (hasPrompt || hasLangChainLlm) {
+      return 'langchain';
+    }
   }
 
   return null;
@@ -113,7 +123,7 @@ export function importCommand(program: Command): void {
     .description('Import agent definition from another framework')
     .argument('<path>', 'Path to the source configuration file')
     .option('-o, --output <path>', 'Output file path', './agent.yaml')
-    .option('-f, --format <format>', 'Force source format (crewai|openai)')
+    .option('-f, --format <format>', 'Force source format (crewai|openai|langchain)')
     .option('--force', 'Overwrite existing output file', false)
     .action((inputPath: string, options: { output: string; format?: string; force: boolean }) => {
       const resolvedInput = resolve(inputPath);
@@ -149,10 +159,10 @@ export function importCommand(program: Command): void {
       // Detect or validate format
       let format: SupportedFormat;
       if (options.format) {
-        const valid: SupportedFormat[] = ['crewai', 'openai'];
+        const valid: SupportedFormat[] = ['crewai', 'openai', 'langchain'];
         if (!valid.includes(options.format as SupportedFormat)) {
           error(`Unknown format: ${options.format}`);
-          info('Supported formats: crewai, openai');
+          info('Supported formats: crewai, openai, langchain');
           process.exitCode = 1;
           return;
         }
@@ -162,8 +172,9 @@ export function importCommand(program: Command): void {
         if (!detected) {
           error('Could not auto-detect source format from file content');
           info('Supported formats:');
-          info('  crewai    - YAML with role + goal + backstory');
-          info('  openai    - JSON with instructions + model');
+          info('  crewai      - YAML with role + goal + backstory');
+          info('  openai      - JSON with instructions + model');
+          info('  langchain   - JSON with prompt/system_message + llm/agent_type');
           info('Use --format <format> to specify explicitly');
           process.exitCode = 1;
           return;
@@ -180,6 +191,9 @@ export function importCommand(program: Command): void {
           break;
         case 'openai':
           agentData = importOpenAI(data as Parameters<typeof importOpenAI>[0]);
+          break;
+        case 'langchain':
+          agentData = importLangChain(data as Parameters<typeof importLangChain>[0]);
           break;
       }
 

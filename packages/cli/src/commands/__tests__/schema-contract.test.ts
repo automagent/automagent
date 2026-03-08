@@ -3,6 +3,7 @@ import { validate, fixtures, NAME_PATTERN, NAME_MAX_LENGTH } from '@automagent/s
 import agentSchema from '@automagent/schema/v1.schema.json' with { type: 'json' };
 import { importCrewAI } from '../../importers/crewai.js';
 import { importOpenAI } from '../../importers/openai.js';
+import { importLangChain } from '../../importers/langchain.js';
 import { detectProvider, resolveModelString, resolveInstructions } from '../../commands/run.js';
 import type { AgentDefinition } from '@automagent/schema';
 
@@ -82,10 +83,49 @@ describe('importer output — schema contract', () => {
     });
   });
 
+  describe('LangChain importer', () => {
+    it('minimal LangChain import produces valid output', () => {
+      expect(validate(importLangChain({ llm: 'gpt-4', system_message: 'Help.' })).valid).toBe(true);
+    });
+
+    it('LangChain import with llm object produces valid output', () => {
+      const result = importLangChain({
+        llm: { model_name: 'gpt-4', temperature: 0.7 },
+        system_message: 'Be helpful.',
+      });
+      expect(validate(result).valid).toBe(true);
+    });
+
+    it('LangChain import with tools produces valid output', () => {
+      const result = importLangChain({
+        llm: 'gpt-4', system_message: 'Help.',
+        tools: ['web_search', { name: 'calc', description: 'Calculator', args_schema: { type: 'object' } }],
+      });
+      expect(validate(result).valid).toBe(true);
+    });
+
+    it('LangChain import with tags produces valid output', () => {
+      const result = importLangChain({
+        llm: 'gpt-4', system_message: 'Help.',
+        tags: ['research'],
+      });
+      expect(validate(result).valid).toBe(true);
+    });
+
+    it('LangChain import with extensions produces valid output', () => {
+      const result = importLangChain({
+        llm: 'gpt-4', system_message: 'Help.',
+        memory: { type: 'buffer' }, verbose: true,
+      });
+      expect(validate(result).valid).toBe(true);
+    });
+  });
+
   describe('all importers set required fields', () => {
     const cases = [
       { name: 'CrewAI', fn: () => importCrewAI({ role: 'r', goal: 'g', backstory: 'b' }) },
       { name: 'OpenAI', fn: () => importOpenAI({ name: 'bot' }) },
+      { name: 'LangChain', fn: () => importLangChain({ llm: 'gpt-4', system_message: 'Help.' }) },
     ];
     for (const { name, fn } of cases) {
       it(`${name} output has name, description, and model`, () => {

@@ -3,8 +3,8 @@
 ## Development Setup
 
 ```bash
-git clone https://github.com/automagent/automagent-monorepo.git
-cd automagent-monorepo
+git clone https://github.com/automagent/automagent.git
+cd automagent
 npm install
 npm run build
 npm run test
@@ -70,4 +70,4 @@ Changes to `packages/schema/src/v1.schema.json` require:
 
 ## Questions
 
-Open a [GitHub issue](https://github.com/automagent/automagent-monorepo/issues).
+Open a [GitHub issue](https://github.com/automagent/automagent/issues).

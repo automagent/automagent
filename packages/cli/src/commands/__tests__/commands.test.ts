@@ -7,6 +7,7 @@ import { tmpdir } from 'node:os';
 import { parseYamlFile, parseYamlString } from '../../utils/yaml.js';
 import { importCrewAI } from '../../importers/crewai.js';
 import { importOpenAI } from '../../importers/openai.js';
+import { importLangChain } from '../../importers/langchain.js';
 import { mockToolResponse } from '../../runtime/tool-mocker.js';
 
 const CLI_PATH = join(import.meta.dirname, '..', '..', '..', 'dist', 'index.js');
@@ -245,6 +246,155 @@ describe('OpenAI importer', () => {
 
 // Type alias to allow extra fields via the index signature
 type OpenAIInput = Parameters<typeof importOpenAI>[0];
+
+// Type alias to allow extra fields via the index signature
+type LangChainInput = Parameters<typeof importLangChain>[0];
+
+describe('LangChain importer', () => {
+  it('uses name field when present', () => {
+    const result = importLangChain({
+      name: 'Research Bot',
+      agent_type: 'react',
+      llm: 'gpt-4',
+      system_message: 'Help with research.',
+    });
+    expect(result['name']).toBe('research-bot');
+  });
+
+  it('falls back to metadata.name when name is absent', () => {
+    const result = importLangChain({
+      agent_type: 'react',
+      llm: 'gpt-4',
+      system_message: 'Help.',
+      metadata: { name: 'Meta Agent' },
+    } as LangChainInput);
+    expect(result['name']).toBe('meta-agent');
+  });
+
+  it('falls back to agent_type when no name or metadata.name', () => {
+    const result = importLangChain({
+      agent_type: 'structured-chat',
+      llm: 'gpt-4',
+      system_message: 'Help.',
+    });
+    expect(result['name']).toBe('structured-chat');
+  });
+
+  it('falls back to imported-agent when no identifiers', () => {
+    const result = importLangChain({ llm: 'gpt-4', system_message: 'Help.' });
+    expect(result['name']).toBe('imported-agent');
+  });
+
+  it('maps system_message to instructions', () => {
+    const result = importLangChain({ llm: 'gpt-4', system_message: 'Be helpful.' });
+    expect(result['instructions']).toBe('Be helpful.');
+  });
+
+  it('prefers prompt over system_message', () => {
+    const result = importLangChain({
+      llm: 'gpt-4',
+      prompt: 'From prompt.',
+      system_message: 'From system.',
+    });
+    expect(result['instructions']).toBe('From prompt.');
+  });
+
+  it('maps llm string directly to model', () => {
+    const result = importLangChain({ llm: 'gpt-4-turbo', system_message: 'x' });
+    expect(result['model']).toBe('gpt-4-turbo');
+  });
+
+  it('extracts model from llm object with model_name', () => {
+    const result = importLangChain({
+      llm: { model_name: 'gpt-4', temperature: 0.7 },
+      system_message: 'x',
+    });
+    expect(result['model']).toEqual({
+      id: 'gpt-4',
+      settings: { temperature: 0.7 },
+    });
+  });
+
+  it('extracts model from llm object preferring model over model_name', () => {
+    const result = importLangChain({
+      llm: { model: 'gpt-4o', model_name: 'gpt-4' },
+      system_message: 'x',
+    });
+    expect(result['model']).toEqual({ id: 'gpt-4o' });
+  });
+
+  it('uses top-level model field when no llm', () => {
+    const result = importLangChain({ model: 'claude-sonnet-4-20250514', system_message: 'x' } as LangChainInput);
+    expect(result['model']).toBe('claude-sonnet-4-20250514');
+  });
+
+  it('defaults model to gpt-4 when neither llm nor model present', () => {
+    const result = importLangChain({ system_message: 'x' });
+    expect(result['model']).toBe('gpt-4');
+  });
+
+  it('converts string tools to objects with name', () => {
+    const result = importLangChain({
+      llm: 'gpt-4', system_message: 'x',
+      tools: ['web_search', 'calculator'],
+    });
+    expect(result['tools']).toEqual([{ name: 'web_search' }, { name: 'calculator' }]);
+  });
+
+  it('converts object tools mapping args_schema to inputSchema', () => {
+    const result = importLangChain({
+      llm: 'gpt-4', system_message: 'x',
+      tools: [{
+        name: 'search',
+        description: 'Web search',
+        args_schema: { type: 'object', properties: { q: { type: 'string' } } },
+      }],
+    });
+    const tools = result['tools'] as Array<Record<string, unknown>>;
+    expect(tools).toHaveLength(1);
+    expect(tools[0]['name']).toBe('search');
+    expect(tools[0]['description']).toBe('Web search');
+    expect(tools[0]['inputSchema']).toEqual({ type: 'object', properties: { q: { type: 'string' } } });
+  });
+
+  it('maps tags to metadata.tags', () => {
+    const result = importLangChain({
+      llm: 'gpt-4', system_message: 'x',
+      tags: ['research', 'analysis'],
+    });
+    const meta = result['metadata'] as Record<string, unknown>;
+    expect(meta['tags']).toEqual(['research', 'analysis']);
+  });
+
+  it('puts unmapped fields into extensions.langchain', () => {
+    const result = importLangChain({
+      llm: 'gpt-4', system_message: 'x',
+      memory: { type: 'buffer' },
+      verbose: true,
+      callbacks: ['my-callback'],
+    });
+    const ext = result['extensions'] as Record<string, unknown>;
+    const lc = ext['langchain'] as Record<string, unknown>;
+    expect(lc['memory']).toEqual({ type: 'buffer' });
+    expect(lc['verbose']).toBe(true);
+    expect(lc['callbacks']).toEqual(['my-callback']);
+  });
+
+  it('does not put agent_type or metadata into extensions', () => {
+    const result = importLangChain({
+      agent_type: 'react',
+      llm: 'gpt-4',
+      system_message: 'x',
+      metadata: { name: 'test' },
+    } as LangChainInput);
+    expect(result['extensions']).toBeUndefined();
+  });
+
+  it('does not create extensions when no unmapped fields', () => {
+    const result = importLangChain({ llm: 'gpt-4', system_message: 'x' });
+    expect(result['extensions']).toBeUndefined();
+  });
+});
 
 // ---------------------------------------------------------------------------
 // 3. Tool mocker

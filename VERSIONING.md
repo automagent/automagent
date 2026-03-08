@@ -185,7 +185,7 @@ npm login
 
 ```bash
 # 1. Bump version (choose one)
-cd /path/to/automagent-monorepo
+cd /path/to/automagent
 npm version patch --workspace=packages/schema   # 0.1.0 -> 0.1.1
 npm version minor --workspace=packages/schema   # 0.1.0 -> 0.2.0
 npm version major --workspace=packages/schema   # 0.1.0 -> 1.0.0
