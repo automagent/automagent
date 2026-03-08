@@ -3,13 +3,20 @@
   "private": true,
   "workspaces": [
     "packages/schema",
-    "packages/cli"
+    "packages/cli",
+    "packages/registry"
   ],
   "engines": {
     "node": ">=18"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/automagent/automagent.git"
+  },
+  "homepage": "https://automagent.dev",
+  "license": "Apache-2.0",
   "scripts": {
-    "build": "npm run build -w packages/schema && npm run build -w packages/cli",
+    "build": "npm run build -w packages/schema && npm run build -w packages/cli && npm run build -w packages/registry",
     "test": "npm run test --workspaces",
     "lint": "npm run lint --workspaces",
     "clean": "npm run clean --workspaces"

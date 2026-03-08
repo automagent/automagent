@@ -7,7 +7,8 @@ An open standard for defining AI agents via `agent.yaml` — YAML for humans, JS
 | Package | Description |
 |---------|-------------|
 | [`@automagent/schema`](packages/schema/) | JSON Schema, TypeScript types, and validator |
-| [`@automagent/cli`](packages/cli/) | CLI toolkit: init, validate, run, import |
+| [`@automagent/cli`](packages/cli/) | CLI toolkit: init, validate, run, import, push, pull, search |
+| [`@automagent/registry`](packages/registry/) | Local registry API server (Hono + Postgres) |
 
 ## Quick Start
 
@@ -15,6 +16,26 @@ An open standard for defining AI agents via `agent.yaml` — YAML for humans, JS
 npm install -g @automagent/cli
 automagent init
 automagent validate
+```
+
+## Local Registry
+
+Run the agent registry locally with Docker:
+
+```bash
+docker compose up -d db          # Start Postgres
+npm run db:migrate -w packages/registry  # Run migrations
+npm run dev -w packages/registry # Start registry on :3000
+```
+
+Push, pull, and search agents:
+
+```bash
+automagent init --quick --name my-agent
+automagent push --scope @myteam
+automagent pull @myteam/my-agent
+automagent search "my query"
+automagent search --tags analytics,data
 ```
 
 ## Development

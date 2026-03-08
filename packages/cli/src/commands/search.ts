@@ -1,0 +1,66 @@
+import type { Command } from 'commander';
+import chalk from 'chalk';
+import { error, info, heading } from '../utils/output.js';
+
+const DEFAULT_REGISTRY = 'http://localhost:3000';
+
+interface SearchResult {
+  agents: Array<{
+    name: string;
+    scope: string;
+    description: string;
+    latestVersion: string;
+    updatedAt: string;
+  }>;
+  total: number;
+}
+
+export function searchCommand(program: Command): void {
+  program
+    .command('search')
+    .description('Search the registry for agents')
+    .argument('[query]', 'Search query')
+    .option('--tags <tags>', 'Filter by tags (comma-separated)')
+    .option('--registry <url>', 'Registry URL', DEFAULT_REGISTRY)
+    .action(async (query: string | undefined, opts: { tags?: string; registry: string }) => {
+      heading('Searching registry');
+
+      const params = new URLSearchParams();
+      if (query) params.set('q', query);
+      if (opts.tags) params.set('tags', opts.tags);
+
+      const url = `${opts.registry}/v1/search?${params}`;
+
+      try {
+        const res = await fetch(url);
+
+        if (!res.ok) {
+          error(`Registry returned ${res.status}: ${res.statusText}`);
+          process.exitCode = 1;
+          return;
+        }
+
+        const body = (await res.json()) as SearchResult;
+
+        if (body.agents.length === 0) {
+          info('No agents found.');
+          return;
+        }
+
+        console.log(chalk.dim(`Found ${body.total} agent(s):\n`));
+
+        for (const agent of body.agents) {
+          console.log(
+            chalk.bold(`${agent.scope}/${agent.name}`) +
+              chalk.dim(`@${agent.latestVersion}`),
+          );
+          console.log(`  ${agent.description}`);
+          console.log();
+        }
+      } catch {
+        error(`Failed to connect to registry at ${opts.registry}`);
+        info('Is the registry running? Start it with: docker compose up');
+        process.exitCode = 1;
+      }
+    });
+}

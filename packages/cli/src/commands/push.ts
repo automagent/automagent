@@ -1,0 +1,67 @@
+import { resolve } from 'node:path';
+import type { Command } from 'commander';
+import { validate } from '@automagent/schema';
+import { parseYamlFile } from '../utils/yaml.js';
+import { success, error, info, heading } from '../utils/output.js';
+
+const DEFAULT_REGISTRY = 'http://localhost:3000';
+
+export function pushCommand(program: Command): void {
+  program
+    .command('push')
+    .description('Push agent definition to the registry')
+    .argument('[path]', 'Path to agent.yaml', './agent.yaml')
+    .option('--registry <url>', 'Registry URL', DEFAULT_REGISTRY)
+    .option('--scope <scope>', 'Agent scope (e.g. @acme)')
+    .action(async (path: string, opts: { registry: string; scope?: string }) => {
+      const filePath = resolve(path);
+
+      heading('Pushing to registry');
+
+      const { data, error: parseError } = parseYamlFile(filePath);
+      if (parseError) {
+        error(parseError);
+        process.exitCode = 1;
+        return;
+      }
+
+      const result = validate(data);
+      if (!result.valid) {
+        error('Invalid agent definition:');
+        for (const e of result.errors) {
+          error(`  ${e.instancePath || '/'}: ${e.message ?? 'validation error'}`);
+        }
+        process.exitCode = 1;
+        return;
+      }
+
+      const def = data as Record<string, unknown>;
+      const name = String(def.name);
+      const version = String(def.version ?? '0.1.0');
+      const scope = opts.scope ?? '@local';
+      const tags = (def.metadata as Record<string, unknown> | undefined)?.tags as string[] | undefined;
+
+      const url = `${opts.registry}/v1/agents/${encodeURIComponent(scope)}/${encodeURIComponent(name)}`;
+
+      try {
+        const res = await fetch(url, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ version, definition: def, tags }),
+        });
+
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          error(`Registry returned ${res.status}: ${(body as Record<string, string>).error ?? res.statusText}`);
+          process.exitCode = 1;
+          return;
+        }
+
+        success(`Pushed ${scope}/${name}@${version} to ${opts.registry}`);
+      } catch {
+        error(`Failed to connect to registry at ${opts.registry}`);
+        info('Is the registry running? Start it with: docker compose up');
+        process.exitCode = 1;
+      }
+    });
+}

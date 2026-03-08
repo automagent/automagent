@@ -409,3 +409,71 @@ describe('init command', () => {
     expect(exitCode).toBe(0);
   });
 });
+
+// ---------------------------------------------------------------------------
+// 6. Search command (subprocess integration tests)
+// ---------------------------------------------------------------------------
+describe('search command', () => {
+  it('exits 1 when registry is unreachable', () => {
+    const tmpDir = mkdtempSync(join(tmpdir(), 'search-test-'));
+    try {
+      const { exitCode } = runCli('search test-query --registry http://localhost:9999', tmpDir);
+      expect(exitCode).toBe(1);
+    } finally {
+      rmSync(tmpDir, { recursive: true, force: true });
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 7. Pull command (subprocess integration tests)
+// ---------------------------------------------------------------------------
+describe('pull command', () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = mkdtempSync(join(tmpdir(), 'pull-test-'));
+  });
+
+  afterEach(() => {
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it('exits 1 when registry is unreachable', () => {
+    const { exitCode } = runCli('pull @acme/test-agent --registry http://localhost:9999', tmpDir);
+    expect(exitCode).toBe(1);
+  });
+
+  it('refuses to overwrite without --force', () => {
+    writeFileSync(join(tmpDir, 'agent.yaml'), 'existing');
+    const { exitCode, stdout } = runCli('pull @acme/test-agent --registry http://localhost:9999', tmpDir);
+    expect(exitCode).toBe(1);
+    expect(stdout).toMatch(/already exists/i);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 8. Push command (subprocess integration tests)
+// ---------------------------------------------------------------------------
+describe('push command', () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = mkdtempSync(join(tmpdir(), 'push-test-'));
+  });
+
+  afterEach(() => {
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it('exits 1 when agent.yaml does not exist', () => {
+    const { exitCode } = runCli('push --registry http://localhost:9999', tmpDir);
+    expect(exitCode).toBe(1);
+  });
+
+  it('exits 1 when agent.yaml is invalid', () => {
+    writeFileSync(join(tmpDir, 'agent.yaml'), 'description: no name or model\n');
+    const { exitCode } = runCli('push --registry http://localhost:9999', tmpDir);
+    expect(exitCode).toBe(1);
+  });
+});

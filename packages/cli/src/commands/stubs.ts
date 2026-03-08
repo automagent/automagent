@@ -13,16 +13,6 @@ function stubAction(): void {
 
 export function registerStubs(program: Command): void {
   program
-    .command('push')
-    .description('Publish agent definition to registry (coming Phase 2)')
-    .action(stubAction);
-
-  program
-    .command('pull')
-    .description('Fetch agent definition from registry (coming Phase 2)')
-    .action(stubAction);
-
-  program
     .command('login')
     .description('Authenticate with registry (coming Phase 2)')
     .action(stubAction);
