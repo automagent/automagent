@@ -6,6 +6,7 @@ import { importCommand } from './commands/import.js';
 import { pushCommand } from './commands/push.js';
 import { pullCommand } from './commands/pull.js';
 import { searchCommand } from './commands/search.js';
+import { diffCommand } from './commands/diff.js';
 import { registerStubs } from './commands/stubs.js';
 
 const program = new Command();
@@ -22,6 +23,7 @@ importCommand(program);
 pushCommand(program);
 pullCommand(program);
 searchCommand(program);
+diffCommand(program);
 registerStubs(program);
 
 program.parse();

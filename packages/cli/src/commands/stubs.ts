@@ -14,11 +14,6 @@ function stubAction(): void {
 export function registerStubs(program: Command): void {
   program
     .command('login')
-    .description('Authenticate with registry (coming Phase 2)')
-    .action(stubAction);
-
-  program
-    .command('diff')
-    .description('Compare local vs published definition (coming Phase 2)')
+    .description('Authenticate with registry (coming soon)')
     .action(stubAction);
 }
