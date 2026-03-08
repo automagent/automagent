@@ -3,13 +3,13 @@
 **Effective Date:** [TBD]
 **Last Updated:** [TBD]
 
-This Abuse Policy describes how Automagent defines, detects, and responds to abuse on its platform, registry, and related services. It applies to all users, including individuals, organizations, and automated systems that interact with Automagent services.
+This Abuse Policy describes how Automagent defines, detects, and responds to abuse on its platform, hub, and related services. It applies to all users, including individuals, organizations, and automated systems that interact with Automagent services.
 
 ---
 
 ## 1. Definition of Abuse
 
-Abuse is any use of Automagent's platform, registry, CLI tools, or agent definitions (`agent.yaml`) that violates this policy, our [Acceptable Use Policy](./acceptable-use-policy.md), our [Terms of Service](./terms-of-service.md), or applicable law.
+Abuse is any use of Automagent's platform, hub, CLI tools, or agent definitions (`agent.yaml`) that violates this policy, our [Acceptable Use Policy](./acceptable-use-policy.md), our [Terms of Service](./terms-of-service.md), or applicable law.
 
 On an AI agent platform, abuse takes specific forms beyond those found on traditional software registries. Abuse includes, but is not limited to, the following categories.
 
@@ -41,13 +41,13 @@ On an AI agent platform, abuse takes specific forms beyond those found on tradit
 - Using the Automagent platform to mine cryptocurrency or perform other compute-intensive tasks unrelated to legitimate agent operation.
 - Deliberately circumventing rate limits, quotas, or other resource controls.
 
-### 1.5 Registry Abuse
+### 1.5 Hub Abuse
 
 - **Typosquatting:** Publishing agent definitions with names intentionally similar to popular agents to deceive users (e.g., `gpt-assisstant` mimicking `gpt-assistant`).
 - **Dependency confusion:** Publishing agents designed to exploit name resolution or dependency chains to inject malicious definitions into other users' workflows.
 - **Star/download manipulation:** Artificially inflating popularity metrics for agent definitions.
 - **Metadata fraud:** Publishing agent definitions with deliberately misleading descriptions, authorship claims, license declarations, or capability descriptions.
-- **Spam publishing:** Bulk-publishing low-quality, empty, or duplicate agent definitions to pollute the registry.
+- **Spam publishing:** Bulk-publishing low-quality, empty, or duplicate agent definitions to pollute the hub.
 - **Namespace squatting:** Claiming agent names or organization namespaces in bad faith with no intent to use them.
 
 ### 1.6 Impersonation and Deception
@@ -85,7 +85,7 @@ Automagent uses a combination of automated and manual methods to detect abuse:
 
 - **Static analysis** of published `agent.yaml` definitions for known malicious patterns, unsafe instructions, and suspicious tool configurations.
 - **Behavioral monitoring** of agents executed on Automagent-hosted infrastructure for anomalous resource consumption, unexpected network activity, or policy-violating behavior.
-- **Registry scanning** for typosquatting, namespace abuse, and metadata anomalies.
+- **Hub scanning** for typosquatting, namespace abuse, and metadata anomalies.
 - **Rate limit enforcement** across all API and CLI interactions.
 
 ### 2.2 Community Reporting
@@ -102,12 +102,12 @@ Automagent uses a combination of automated and manual methods to detect abuse:
 
 ## 3. Reporting Abuse
 
-If you believe an agent definition, account, or activity on the Automagent platform constitutes abuse, you can report it through any of the following channels:
+If you believe an agent definition, account, or activity on the Automagent Hub constitutes abuse, you can report it through any of the following channels:
 
 - **Email:** abuse@automagent.dev
 - **Web form:** [https://automagent.dev/report-abuse](https://automagent.dev/report-abuse)
 - **CLI:** `automagent report <agent-name>` (available in `@automagent/cli`)
-- **Registry UI:** Use the "Report" button on any agent definition page.
+- **Hub UI:** Use the "Report" button on any agent definition page.
 
 When reporting, please include:
 
@@ -134,7 +134,7 @@ Upon receiving a report or automated detection alert, Automagent follows this pr
 
 - The reported agent definition, account, or activity is reviewed by the Automagent trust and safety team.
 - The account holder may be contacted for clarification (except in cases where doing so would compromise the investigation or pose a safety risk).
-- Technical analysis is conducted as needed, including review of agent definition contents, execution logs (on hosted infrastructure), and registry activity.
+- Technical analysis is conducted as needed, including review of agent definition contents, execution logs (on hosted infrastructure), and hub activity.
 
 ### 4.3 Determination
 
@@ -157,7 +157,7 @@ Enforcement is proportional to the severity, intent, and recurrence of the viola
 
 ### 5.2 Tier 2 -- Agent Removal or Restriction
 
-- The specific agent definition is unpublished from the registry.
+- The specific agent definition is unpublished from the hub.
 - The agent definition may be quarantined (hidden from search and install but preserved for review).
 - The account holder is notified and may resubmit a corrected version.
 - Applied for: confirmed malicious agent definitions, repeated Tier 1 violations, metadata fraud.
@@ -166,12 +166,12 @@ Enforcement is proportional to the severity, intent, and recurrence of the viola
 
 - The account is temporarily suspended for a defined period (typically 30-90 days).
 - All agent definitions published by the account are suspended.
-- Applied for: repeated violations, serious but non-critical abuse, registry manipulation.
+- Applied for: repeated violations, serious but non-critical abuse, hub manipulation.
 
 ### 5.4 Tier 4 -- Account Termination
 
 - The account is permanently terminated.
-- All agent definitions are removed from the registry.
+- All agent definitions are removed from the hub.
 - The user may be prohibited from creating new accounts.
 - Applied for: severe abuse, weaponized agents, illegal activity, CSAM, threats to safety.
 

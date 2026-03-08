@@ -3,7 +3,7 @@
 **Effective Date:** [TBD]
 **Last Updated:** [TBD]
 
-Welcome to Automagent. These Terms of Service ("Terms") govern your access to and use of the Automagent platform, including the automagent.dev website, the hosted agent registry, the `@automagent/cli` command-line tool, the `agent.yaml` specification and documentation, and any related APIs and services (collectively, the "Service"). The Service is operated by Automagent ("Automagent," "we," "us," or "our").
+Welcome to Automagent. These Terms of Service ("Terms") govern your access to and use of the Automagent platform, including the automagent.dev website, the hosted agent hub, the `@automagent/cli` command-line tool, the `agent.yaml` specification and documentation, and any related APIs and services (collectively, the "Service"). The Service is operated by Automagent ("Automagent," "we," "us," or "our").
 
 By accessing or using the Service, you agree to be bound by these Terms. If you do not agree, do not use the Service.
 
@@ -11,7 +11,7 @@ By accessing or using the Service, you agree to be bound by these Terms. If you 
 
 ## 1. Acceptance of Terms
 
-By creating an account, publishing an agent definition, accessing the registry, using the CLI to interact with hosted services, or otherwise using any part of the Service, you acknowledge that you have read, understood, and agree to be bound by these Terms, our [Privacy Policy](./privacy-policy.md), our [Acceptable Use Policy](./acceptable-use-policy.md), and our [Abuse Policy](./abuse-policy.md), each of which is incorporated by reference.
+By creating an account, publishing an agent definition, accessing the hub, using the CLI to interact with hosted services, or otherwise using any part of the Service, you acknowledge that you have read, understood, and agree to be bound by these Terms, our [Privacy Policy](./privacy-policy.md), our [Acceptable Use Policy](./acceptable-use-policy.md), and our [Abuse Policy](./abuse-policy.md), each of which is incorporated by reference.
 
 If you are using the Service on behalf of an organization, you represent and warrant that you have the authority to bind that organization to these Terms, and "you" refers to both you individually and that organization.
 
@@ -25,11 +25,11 @@ Automagent provides the following:
 
 2. **Command-Line Interface (CLI).** The `@automagent/cli` package, which enables users to initialize, validate, run, and import agent definitions locally. The CLI is open-source software licensed under the Apache License 2.0.
 
-3. **Hosted Agent Registry.** A hosted registry (similar in concept to npm for packages) where users can publish, discover, and consume agent definitions. The registry includes governance, testing, search, and enterprise features.
+3. **Hosted Agent Hub.** A hosted hub (similar in concept to npm for packages) where users can publish, discover, and consume agent definitions. The hub includes governance, testing, search, and enterprise features.
 
-4. **Website and Documentation.** The automagent.dev website, which provides documentation, guides, and access to the registry and related tools.
+4. **Website and Documentation.** The automagent.dev website, which provides documentation, guides, and access to the hub and related tools.
 
-5. **APIs.** Programmatic interfaces for interacting with the registry and related platform services.
+5. **APIs.** Programmatic interfaces for interacting with the hub and related platform services.
 
 The Service is framework-neutral and is designed to work with a variety of AI agent frameworks, including but not limited to CrewAI, OpenAI Agents SDK, AutoGen, and LangGraph. Automagent does not itself provide or host AI models; it provides a definition, orchestration, and distribution layer for agent configurations.
 
@@ -63,7 +63,7 @@ You retain all ownership rights in the agent definitions (`agent.yaml` files), d
 
 ### 4.2 License Grant to Automagent
 
-By publishing User Content to the registry or otherwise making it available through the Service, you grant Automagent a worldwide, non-exclusive, royalty-free license to host, store, reproduce, display, distribute, and make available your User Content solely as necessary to operate, maintain, and provide the Service. This includes caching, indexing, and serving your agent definitions to other users of the registry.
+By publishing User Content to the hub or otherwise making it available through the Service, you grant Automagent a worldwide, non-exclusive, royalty-free license to host, store, reproduce, display, distribute, and make available your User Content solely as necessary to operate, maintain, and provide the Service. This includes caching, indexing, and serving your agent definitions to other users of the hub.
 
 If you publish an agent definition with a specific open-source or other license, that license governs how other users may use your agent definition. Automagent does not alter or override the license you choose for your User Content.
 
@@ -82,11 +82,11 @@ Automagent may, but is not obligated to, review, monitor, or scan User Content f
 
 ---
 
-## 5. Registry and Publishing
+## 5. Hub and Publishing
 
 ### 5.1 Publishing Agent Definitions
 
-When you publish an agent definition to the hosted registry, it becomes discoverable by other users of the Service. You are responsible for ensuring that your published definitions are accurate, functional, and compliant with these Terms.
+When you publish an agent definition to the hosted hub, it becomes discoverable by other users of the Service. You are responsible for ensuring that your published definitions are accurate, functional, and compliant with these Terms.
 
 ### 5.2 Namespace and Naming Policies
 
@@ -94,7 +94,7 @@ Agent definition names and namespaces (including scoped names such as `@org/agen
 
 - Reclaim namespaces that infringe trademarks or are confusingly similar to well-known names.
 - Reclaim namespaces that are squatted (registered but not used in good faith).
-- Reassign or retire namespaces at our discretion to protect the integrity of the registry.
+- Reassign or retire namespaces at our discretion to protect the integrity of the hub.
 
 Disputes over namespace ownership will be resolved at Automagent's sole discretion.
 
@@ -111,7 +111,7 @@ You may unpublish your agent definitions, subject to the following:
 
 ### 5.5 Takedown Requests
 
-If you believe that an agent definition published on the registry infringes your intellectual property rights or violates applicable law, please contact us using the information in Section 18. We will review and respond to valid takedown requests in accordance with applicable law, including the Digital Millennium Copyright Act (DMCA) where applicable.
+If you believe that an agent definition published on the hub infringes your intellectual property rights or violates applicable law, please contact us using the information in Section 18. We will review and respond to valid takedown requests in accordance with applicable law, including the Digital Millennium Copyright Act (DMCA) where applicable.
 
 ---
 
@@ -123,7 +123,7 @@ The `agent.yaml` specification (including the JSON Schema) and the `@automagent/
 
 ### 6.2 Hosted Services
 
-These Terms govern your use of the hosted platform, registry, website, APIs, and any other non-open-source services provided by Automagent. Where there is a conflict between the Apache License 2.0 and these Terms with respect to the hosted services, these Terms control.
+These Terms govern your use of the hosted platform, hub, website, APIs, and any other non-open-source services provided by Automagent. Where there is a conflict between the Apache License 2.0 and these Terms with respect to the hosted services, these Terms control.
 
 ### 6.3 Contributions
 
@@ -135,7 +135,7 @@ Contributions to Automagent's open-source repositories are governed by the appli
 
 ### 7.1 Programmatic Access
 
-You may access the registry and platform services programmatically through our APIs and CLI. All programmatic access is subject to these Terms.
+You may access the hub and platform services programmatically through our APIs and CLI. All programmatic access is subject to these Terms.
 
 ### 7.2 Rate Limits
 
@@ -146,7 +146,7 @@ We impose rate limits on API and CLI requests to ensure fair use and platform st
 You agree not to:
 
 - Circumvent or attempt to circumvent rate limits or other technical restrictions.
-- Use automated means to scrape, mirror, or bulk-download the contents of the registry beyond what is necessary for normal use of the Service.
+- Use automated means to scrape, mirror, or bulk-download the contents of the hub beyond what is necessary for normal use of the Service.
 - Use the API in a manner that degrades the experience for other users.
 
 ### 7.4 Authentication
@@ -177,7 +177,7 @@ You are solely responsible for:
 - Reviewing and understanding agent definitions before executing them.
 - Ensuring that agents you run comply with applicable laws and regulations.
 - Implementing appropriate safeguards, monitoring, and human oversight for agents you deploy.
-- Any costs, damages, or liabilities arising from the execution of agents you run, whether you authored the agent definition or obtained it from the registry.
+- Any costs, damages, or liabilities arising from the execution of agents you run, whether you authored the agent definition or obtained it from the hub.
 
 ---
 
@@ -185,7 +185,7 @@ You are solely responsible for:
 
 ### 9.1 Automagent's Intellectual Property
 
-The Automagent name, logo, website design, and the proprietary components of the hosted platform and registry are the intellectual property of Automagent. Except for the open-source components described in Section 6, you may not use Automagent's trademarks, logos, or branding without our prior written consent.
+The Automagent name, logo, website design, and the proprietary components of the hosted platform and hub are the intellectual property of Automagent. Except for the open-source components described in Section 6, you may not use Automagent's trademarks, logos, or branding without our prior written consent.
 
 ### 9.2 User Intellectual Property
 
@@ -193,7 +193,7 @@ As stated in Section 4.1, you retain ownership of your User Content. Nothing in 
 
 ### 9.3 Open-Source Distinction
 
-The open-source specification and CLI tools are available under the Apache License 2.0 and may be used, modified, and distributed in accordance with that license. The hosted registry, platform features, and proprietary tooling are not covered by the Apache License 2.0 and are subject to these Terms.
+The open-source specification and CLI tools are available under the Apache License 2.0 and may be used, modified, and distributed in accordance with that license. The hosted hub, platform features, and proprietary tooling are not covered by the Apache License 2.0 and are subject to these Terms.
 
 ### 9.4 Feedback
 
@@ -203,7 +203,7 @@ If you provide us with feedback, suggestions, or ideas regarding the Service, yo
 
 ## 10. Privacy
 
-Your use of the Service is subject to our [Privacy Policy](./privacy-policy.md), which describes how we collect, use, and protect your information, including information related to your account, your use of the registry and CLI, and any telemetry data. Please review the Privacy Policy carefully.
+Your use of the Service is subject to our [Privacy Policy](./privacy-policy.md), which describes how we collect, use, and protect your information, including information related to your account, your use of the hub and CLI, and any telemetry data. Please review the Privacy Policy carefully.
 
 ---
 
@@ -229,11 +229,11 @@ THE SERVICE IS PROVIDED "AS IS" AND "AS AVAILABLE," WITHOUT WARRANTY OF ANY KIND
 
 ### 12.2 No Guarantee of Availability
 
-We do not guarantee that the registry, APIs, or any part of the Service will be available at all times or without interruption. We may perform maintenance, updates, or changes that temporarily affect availability.
+We do not guarantee that the hub, APIs, or any part of the Service will be available at all times or without interruption. We may perform maintenance, updates, or changes that temporarily affect availability.
 
 ### 12.3 No Warranty on Agent Definitions
 
-Automagent does not warrant, endorse, or guarantee the accuracy, safety, reliability, or fitness for any purpose of agent definitions published to the registry by third-party users. You use third-party agent definitions at your own risk.
+Automagent does not warrant, endorse, or guarantee the accuracy, safety, reliability, or fitness for any purpose of agent definitions published to the hub by third-party users. You use third-party agent definitions at your own risk.
 
 ### 12.4 No Warranty on Agent Behavior
 
@@ -288,7 +288,7 @@ We may suspend or terminate your access to the Service at any time, with or with
 
 Upon termination:
 
-- Your right to access the Service (including the registry and APIs) ceases immediately.
+- Your right to access the Service (including the hub and APIs) ceases immediately.
 - We may delete your account data in accordance with our Privacy Policy.
 - Published agent definitions may be removed or retained at our discretion, subject to Section 5.4.
 - Sections 4.2 (License Grant), 8 (Agent Execution), 9 (Intellectual Property), 12 (Disclaimers), 13 (Limitation of Liability), 14 (Indemnification), 17 (Governing Law), and this Section 15.3 survive termination.

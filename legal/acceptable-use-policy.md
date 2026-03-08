@@ -3,7 +3,7 @@
 **Effective Date:** [TBD]
 **Last Updated:** [TBD]
 
-This Acceptable Use Policy ("AUP") governs all use of the Automagent platform, registry, CLI tools (`@automagent/cli`), open-source specification, and related services (collectively, the "Services"). By using the Services, you agree to comply with this AUP.
+This Acceptable Use Policy ("AUP") governs all use of the Automagent platform, hub, CLI tools (`@automagent/cli`), open-source specification, and related services (collectively, the "Services"). By using the Services, you agree to comply with this AUP.
 
 This AUP supplements the Automagent [Terms of Service](./terms-of-service.md). Capitalized terms not defined here have the meanings given in the Terms of Service.
 
@@ -15,8 +15,8 @@ Automagent is designed for the creation, sharing, and execution of AI agent defi
 
 - **Define agents** using the `agent.yaml` format and the Automagent specification.
 - **Validate agents** using the CLI or API to check that agent definitions conform to the schema.
-- **Publish agents** to the Automagent registry for others to discover and use.
-- **Discover and install agents** from the registry for use in your own projects and workflows.
+- **Publish agents** to the Automagent Hub for others to discover and use.
+- **Discover and install agents** from the hub for use in your own projects and workflows.
 - **Run agents** through the CLI or compatible frameworks (CrewAI, OpenAI Agents, AutoGen, LangGraph, and others).
 - **Import agent definitions** from other formats using the CLI's import functionality.
 - **Build integrations** and tooling on top of the open-source specification and published APIs.
@@ -83,7 +83,7 @@ See also our [Privacy Policy](./privacy-policy.md) for how Automagent handles da
 
 ## 3. Agent Behavior Requirements
 
-All agents published to the Automagent registry or executed through Automagent Services must meet the following behavioral standards.
+All agents published to the Automagent Hub or executed through Automagent Services must meet the following behavioral standards.
 
 ### 3.1 Transparency
 
@@ -120,9 +120,9 @@ All agents published to the Automagent registry or executed through Automagent S
 
 ---
 
-## 4. Registry Usage Guidelines
+## 4. Hub Usage Guidelines
 
-The Automagent registry is a shared resource. All publishers must follow these guidelines.
+The Automagent Hub is a shared resource. All publishers must follow these guidelines.
 
 ### 4.1 Honest Metadata
 
@@ -160,11 +160,11 @@ The Automagent registry is a shared resource. All publishers must follow these g
 
 ## 5. Resource Consumption Guidelines
 
-Whether using Automagent-hosted infrastructure or interacting with the registry and API:
+Whether using Automagent-hosted infrastructure or interacting with the hub and API:
 
 - **API rate limits** are published in the API documentation and must be respected. Do not attempt to circumvent them.
 - **CLI usage** should follow standard automation practices. Avoid tight loops of repeated requests.
-- **Registry bandwidth** is a shared resource. Cache agent definitions locally where possible rather than repeatedly downloading them.
+- **Hub bandwidth** is a shared resource. Cache agent definitions locally where possible rather than repeatedly downloading them.
 - **Hosted execution** (where available) is subject to per-agent and per-account resource quotas. Agents that exceed quotas will be throttled or terminated.
 - If your use case requires resource limits above standard quotas, contact us at support@automagent.dev to discuss enterprise options.
 
@@ -172,7 +172,7 @@ Whether using Automagent-hosted infrastructure or interacting with the registry 
 
 ## 6. Security Requirements for Published Agents
 
-All agent definitions published to the Automagent registry must meet these security requirements.
+All agent definitions published to the Automagent Hub must meet these security requirements.
 
 ### 6.1 No Embedded Secrets
 
@@ -239,7 +239,7 @@ If you become aware of activity that violates this AUP, please report it:
 - **Email:** abuse@automagent.dev
 - **Web form:** [https://automagent.dev/report-abuse](https://automagent.dev/report-abuse)
 - **CLI:** `automagent report <agent-name>`
-- **Registry UI:** Use the "Report" button on any agent definition page.
+- **Hub UI:** Use the "Report" button on any agent definition page.
 
 All reports are treated confidentially.
 

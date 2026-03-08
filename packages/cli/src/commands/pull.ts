@@ -5,7 +5,7 @@ import { stringify } from 'yaml';
 import { success, error, info, heading } from '../utils/output.js';
 import { SCHEMA_HEADER } from '../utils/constants.js';
 
-const DEFAULT_REGISTRY = 'http://localhost:3000';
+const DEFAULT_HUB = 'http://localhost:3000';
 
 function parseAgentRef(ref: string): { scope: string; name: string; version?: string } {
   const versionSplit = ref.split(':');
@@ -23,15 +23,15 @@ function parseAgentRef(ref: string): { scope: string; name: string; version?: st
 export function pullCommand(program: Command): void {
   program
     .command('pull')
-    .description('Pull agent definition from the registry')
+    .description('Pull agent definition from the hub')
     .argument('<ref>', 'Agent reference (e.g. @acme/my-agent or @acme/my-agent:1.0.0)')
     .option('-o, --output <path>', 'Output file path', './agent.yaml')
-    .option('--registry <url>', 'Registry URL', DEFAULT_REGISTRY)
+    .option('--hub-url <url>', 'Hub URL', DEFAULT_HUB)
     .option('--force', 'Overwrite existing file')
-    .action(async (ref: string, opts: { output: string; registry: string; force?: boolean }) => {
+    .action(async (ref: string, opts: { output: string; hubUrl: string; force?: boolean }) => {
       const outputPath = resolve(opts.output);
 
-      heading('Pulling from registry');
+      heading('Pulling from hub');
 
       if (existsSync(outputPath) && !opts.force) {
         error(`${opts.output} already exists. Use --force to overwrite.`);
@@ -48,7 +48,7 @@ export function pullCommand(program: Command): void {
         return;
       }
 
-      const url = `${opts.registry}/v1/agents/${encodeURIComponent(parsed.scope)}/${encodeURIComponent(parsed.name)}${parsed.version ? `?version=${parsed.version}` : ''}`;
+      const url = `${opts.hubUrl}/v1/agents/${encodeURIComponent(parsed.scope)}/${encodeURIComponent(parsed.name)}${parsed.version ? `?version=${parsed.version}` : ''}`;
 
       try {
         const res = await fetch(url);
@@ -60,7 +60,7 @@ export function pullCommand(program: Command): void {
         }
 
         if (!res.ok) {
-          error(`Registry returned ${res.status}: ${res.statusText}`);
+          error(`Hub returned ${res.status}: ${res.statusText}`);
           process.exitCode = 1;
           return;
         }
@@ -71,8 +71,8 @@ export function pullCommand(program: Command): void {
         writeFileSync(outputPath, yamlContent, 'utf-8');
         success(`Pulled ${ref}@${body.version} to ${opts.output}`);
       } catch {
-        error(`Failed to connect to registry at ${opts.registry}`);
-        info('Is the registry running? Start it with: docker compose up');
+        error(`Failed to connect to hub at ${opts.hubUrl}`);
+        info('Is the hub running? Start it with: docker compose up');
         process.exitCode = 1;
       }
     });

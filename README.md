@@ -21,9 +21,9 @@ automagent init
 automagent validate
 ```
 
-## Registry
+## Hub
 
-Push, pull, and search agents using the hosted registry:
+Push, pull, and search agents using the Automagent Hub:
 
 ```bash
 automagent init --quick --name my-agent

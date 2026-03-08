@@ -5,9 +5,9 @@
 
 ## 1. Introduction
 
-Automagent ("we," "us," or "our") operates the Automagent platform, which includes the automagent.dev website, the Automagent Registry, and the `@automagent/cli` command-line tool. Automagent provides an open standard for defining AI agents via `agent.yaml` files, along with tooling and a hosted registry for publishing, discovering, and managing agent definitions.
+Automagent ("we," "us," or "our") operates the Automagent platform, which includes the automagent.dev website, the Automagent Hub, and the `@automagent/cli` command-line tool. Automagent provides an open standard for defining AI agents via `agent.yaml` files, along with tooling and a hosted hub for publishing, discovering, and managing agent definitions.
 
-This Privacy Policy explains what information we collect, how we use it, and what choices you have. It applies to all Automagent services: the website, the registry, the CLI (where applicable), and our APIs.
+This Privacy Policy explains what information we collect, how we use it, and what choices you have. It applies to all Automagent services: the website, the hub, the CLI (where applicable), and our APIs.
 
 The Automagent specification itself is open source under the Apache-2.0 license. This policy covers the hosted platform and services we operate, not the open-source spec in isolation.
 
@@ -27,16 +27,16 @@ When you create an Automagent account, we collect:
 - Organization or team name (if applicable)
 - Authentication credentials (passwords are hashed; OAuth tokens are stored encrypted)
 
-### 2.2 Agent Definitions and Registry Data
+### 2.2 Agent Definitions and Hub Data
 
-When you publish an agent definition to the Automagent Registry, we store:
+When you publish an agent definition to the Automagent Hub, we store:
 
 - The `agent.yaml` file and any associated metadata
 - Package name, version, description, author, and tags
 - README or documentation files included with the publication
 - Publication timestamps and version history
 
-**Important:** Agent definitions published to the registry are **public by default**. This is by design — the registry functions like a public package manager for agent definitions. See Section 4 for details on public vs. private agents.
+**Important:** Agent definitions published to the hub are **public by default**. This is by design — the hub functions like a public package manager for agent definitions. See Section 4 for details on public vs. private agents.
 
 ### 2.3 CLI Telemetry (Opt-In)
 
@@ -71,7 +71,7 @@ We use cookies and similar technologies for website analytics and essential func
 
 ### 2.5 API and Service Logs
 
-When you interact with the Automagent Registry API, we log:
+When you interact with the Automagent Hub API, we log:
 
 - API endpoints called and HTTP methods
 - Request timestamps
@@ -107,7 +107,7 @@ We do **not** sell your personal information. We do not use your data to train A
 
 ### 4.1 Public Agents
 
-When you publish an `agent.yaml` to the Automagent Registry, the following are publicly visible to anyone:
+When you publish an `agent.yaml` to the Automagent Hub, the following are publicly visible to anyone:
 
 - The full agent definition file (`agent.yaml` contents)
 - Package name, version, description, and tags
@@ -115,7 +115,7 @@ When you publish an `agent.yaml` to the Automagent Registry, the following are p
 - Publication date and version history
 - README or documentation included with the package
 
-This is intentional. The registry is a public directory of agent definitions, similar to how npm hosts public packages. Do not include secrets, API keys, private endpoints, or confidential information in agent definitions you publish.
+This is intentional. The hub is a public directory of agent definitions, similar to how npm hosts public packages. Do not include secrets, API keys, private endpoints, or confidential information in agent definitions you publish.
 
 ### 4.2 Private Agents
 
@@ -123,7 +123,7 @@ Paid tiers may offer private agent definitions. Private agents are visible only 
 
 ### 4.3 Metadata and Discovery
 
-We may index and surface metadata from published agent definitions — such as tool references, MCP server declarations, model configurations, and capability tags — to power search, discovery, and compatibility features in the registry.
+We may index and surface metadata from published agent definitions — such as tool references, MCP server declarations, model configurations, and capability tags — to power search, discovery, and compatibility features in the hub.
 
 ## 5. CLI and Local Usage
 
@@ -131,7 +131,7 @@ The `@automagent/cli` is a local tool that runs on your machine. Here is what do
 
 - **`automagent init`** — Runs entirely locally. No network requests are made.
 - **`automagent validate`** — Runs locally by default. If the CLI fetches a remote schema for validation, it makes an HTTPS request to our servers to retrieve the schema definition only — your `agent.yaml` contents are not transmitted.
-- **`automagent publish`** — Transmits your agent definition and metadata to the Automagent Registry over HTTPS.
+- **`automagent publish`** — Transmits your agent definition and metadata to the Automagent Hub over HTTPS.
 - **`automagent run`** — Sends your agent definition (including model configuration, instructions, and tool definitions) **directly to the AI model provider** you have configured (e.g., Anthropic, OpenAI). This data goes to the provider, not to Automagent servers. You are subject to the provider's own privacy policy and terms for that data. Automagent does not intercept, store, or relay the content of these requests.
 - **`automagent import`** — May make network requests to fetch external agent definitions or framework configurations. The content of the import source is processed locally.
 
@@ -170,8 +170,8 @@ We do **not** sell personal information to third parties. We do not share person
 ## 7. Data Retention
 
 - **Account information** is retained for the duration of your account. Upon account deletion, we remove your personal information within 30 days, except where retention is required by law.
-- **Published agent definitions** that are public remain available in the registry even after account deletion, as they are part of the public record (similar to published open-source packages). You may unpublish specific versions before deleting your account.
-- **Private agent definitions** are deleted when you delete your account or remove them from the registry.
+- **Published agent definitions** that are public remain available in the hub even after account deletion, as they are part of the public record (similar to published open-source packages). You may unpublish specific versions before deleting your account.
+- **Private agent definitions** are deleted when you delete your account or remove them from the hub.
 - **API and service logs** are retained for up to 90 days for operational purposes, then deleted or anonymized.
 - **CLI telemetry data** is retained in aggregate form. Individual telemetry records are deleted or anonymized within 90 days.
 - **Payment records** are retained as required by applicable tax and financial regulations.

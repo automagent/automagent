@@ -4,19 +4,19 @@ import { validate } from '@automagent/schema';
 import { parseYamlFile } from '../utils/yaml.js';
 import { success, error, info, heading } from '../utils/output.js';
 
-const DEFAULT_REGISTRY = 'http://localhost:3000';
+const DEFAULT_HUB = 'http://localhost:3000';
 
 export function pushCommand(program: Command): void {
   program
     .command('push')
-    .description('Push agent definition to the registry')
+    .description('Push agent definition to the hub')
     .argument('[path]', 'Path to agent.yaml', './agent.yaml')
-    .option('--registry <url>', 'Registry URL', DEFAULT_REGISTRY)
+    .option('--hub-url <url>', 'Hub URL', DEFAULT_HUB)
     .option('--scope <scope>', 'Agent scope (e.g. @acme)')
-    .action(async (path: string, opts: { registry: string; scope?: string }) => {
+    .action(async (path: string, opts: { hubUrl: string; scope?: string }) => {
       const filePath = resolve(path);
 
-      heading('Pushing to registry');
+      heading('Pushing to hub');
 
       const { data, error: parseError } = parseYamlFile(filePath);
       if (parseError) {
@@ -41,7 +41,7 @@ export function pushCommand(program: Command): void {
       const scope = opts.scope ?? '@local';
       const tags = (def.metadata as Record<string, unknown> | undefined)?.tags as string[] | undefined;
 
-      const url = `${opts.registry}/v1/agents/${encodeURIComponent(scope)}/${encodeURIComponent(name)}`;
+      const url = `${opts.hubUrl}/v1/agents/${encodeURIComponent(scope)}/${encodeURIComponent(name)}`;
 
       try {
         const res = await fetch(url, {
@@ -52,15 +52,15 @@ export function pushCommand(program: Command): void {
 
         if (!res.ok) {
           const body = await res.json().catch(() => ({}));
-          error(`Registry returned ${res.status}: ${(body as Record<string, string>).error ?? res.statusText}`);
+          error(`Hub returned ${res.status}: ${(body as Record<string, string>).error ?? res.statusText}`);
           process.exitCode = 1;
           return;
         }
 
-        success(`Pushed ${scope}/${name}@${version} to ${opts.registry}`);
+        success(`Pushed ${scope}/${name}@${version} to ${opts.hubUrl}`);
       } catch {
-        error(`Failed to connect to registry at ${opts.registry}`);
-        info('Is the registry running? Start it with: docker compose up');
+        error(`Failed to connect to hub at ${opts.hubUrl}`);
+        info('Is the hub running? Start it with: docker compose up');
         process.exitCode = 1;
       }
     });

@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "=== Automagent E2E Test (CLI + Registry) ==="
-echo "Requires: docker compose up -d db + registry running on :3000"
+echo "=== Automagent E2E Test (CLI + Hub) ==="
+echo "Requires: docker compose up -d db + hub running on :3000"
 echo ""
 
 TMPDIR=$(mktemp -d)
 trap 'rm -rf "$TMPDIR"' EXIT
 
 CLI="$(pwd)/node_modules/.bin/automagent"
-REGISTRY="http://localhost:3000"
+HUB_URL="http://localhost:3000"
 
 echo "1. Health check..."
-curl -sf "$REGISTRY/health" > /dev/null
+curl -sf "$HUB_URL/health" > /dev/null
 echo "   PASS"
 
 echo "2. Init agent..."
@@ -24,11 +24,11 @@ echo "3. Validate agent..."
 echo "   PASS"
 
 echo "4. Push agent..."
-(cd "$TMPDIR" && NO_COLOR=1 $CLI push --registry "$REGISTRY" --scope @test)
+(cd "$TMPDIR" && NO_COLOR=1 $CLI push --hub-url "$HUB_URL" --scope @test)
 echo "   PASS"
 
 echo "5. Pull agent to new file..."
-(cd "$TMPDIR" && NO_COLOR=1 $CLI pull @test/e2e-test-agent -o pulled.yaml --registry "$REGISTRY")
+(cd "$TMPDIR" && NO_COLOR=1 $CLI pull @test/e2e-test-agent -o pulled.yaml --hub-url "$HUB_URL")
 test -f "$TMPDIR/pulled.yaml"
 echo "   PASS"
 
@@ -37,7 +37,7 @@ echo "6. Validate pulled agent..."
 echo "   PASS"
 
 echo "7. Search for agent..."
-SEARCH_OUTPUT=$(NO_COLOR=1 $CLI search e2e-test --registry "$REGISTRY" 2>&1)
+SEARCH_OUTPUT=$(NO_COLOR=1 $CLI search e2e-test --hub-url "$HUB_URL" 2>&1)
 echo "$SEARCH_OUTPUT" | grep -q "e2e-test-agent"
 echo "   PASS"
 

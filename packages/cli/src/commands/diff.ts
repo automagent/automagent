@@ -5,7 +5,7 @@ import chalk from 'chalk';
 import { parseYamlFile } from '../utils/yaml.js';
 import { error, info, heading } from '../utils/output.js';
 
-const DEFAULT_REGISTRY = 'http://localhost:3000';
+const DEFAULT_HUB = 'http://localhost:3000';
 
 function diffLines(localLines: string[], remoteLines: string[]): string[] {
   const output: string[] = [];
@@ -48,13 +48,13 @@ export function diffCommand(program: Command): void {
     .command('diff')
     .description('Compare local agent definition with published version')
     .argument('[path]', 'Path to agent.yaml', './agent.yaml')
-    .option('--registry <url>', 'Registry URL', DEFAULT_REGISTRY)
+    .option('--hub-url <url>', 'Hub URL', DEFAULT_HUB)
     .option('--scope <scope>', 'Agent scope (e.g. @acme)')
     .option('--version <version>', 'Compare against specific version')
-    .action(async (path: string, opts: { registry: string; scope?: string; version?: string }) => {
+    .action(async (path: string, opts: { hubUrl: string; scope?: string; version?: string }) => {
       const filePath = resolve(path);
 
-      heading('Comparing with registry');
+      heading('Comparing with hub');
 
       const parsed = parseYamlFile(filePath);
       if (parsed.error || !parsed.data) {
@@ -78,7 +78,7 @@ export function diffCommand(program: Command): void {
         return;
       }
 
-      const url = `${opts.registry}/v1/agents/${encodeURIComponent(scope)}/${encodeURIComponent(name)}${opts.version ? `?version=${opts.version}` : ''}`;
+      const url = `${opts.hubUrl}/v1/agents/${encodeURIComponent(scope)}/${encodeURIComponent(name)}${opts.version ? `?version=${opts.version}` : ''}`;
 
       let remoteDef: Record<string, unknown>;
       let remoteVersion: string;
@@ -86,12 +86,12 @@ export function diffCommand(program: Command): void {
         const res = await fetch(url);
 
         if (res.status === 404) {
-          info(`Agent ${scope}/${name} not found in registry. Nothing to compare.`);
+          info(`Agent ${scope}/${name} not found in hub. Nothing to compare.`);
           return;
         }
 
         if (!res.ok) {
-          error(`Registry returned ${res.status}: ${res.statusText}`);
+          error(`Hub returned ${res.status}: ${res.statusText}`);
           process.exitCode = 1;
           return;
         }
@@ -100,8 +100,8 @@ export function diffCommand(program: Command): void {
         remoteDef = body.definition;
         remoteVersion = body.version;
       } catch {
-        error(`Failed to connect to registry at ${opts.registry}`);
-        info('Is the registry running? Start it with: docker compose up');
+        error(`Failed to connect to hub at ${opts.hubUrl}`);
+        info('Is the hub running? Start it with: docker compose up');
         process.exitCode = 1;
         return;
       }
@@ -118,7 +118,7 @@ export function diffCommand(program: Command): void {
       const localLines = localYaml.split('\n');
       const remoteLines = remoteYaml.split('\n');
 
-      console.log(chalk.bold(`\n  ${scope}/${name}@${remoteVersion} (registry) → local\n`));
+      console.log(chalk.bold(`\n  ${scope}/${name}@${remoteVersion} (hub) → local\n`));
       const diff = diffLines(localLines, remoteLines);
       for (const line of diff) {
         console.log(`  ${line}`);

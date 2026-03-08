@@ -26,9 +26,9 @@ An agent definition captures what an agent is (model, instructions, tools), how 
 
 5. **Framework-neutral core, framework-specific extensions.** Any runtime can read the core fields. Framework-specific configuration lives in `extensions.*` and never pollutes the shared namespace.
 
-6. **Registry concerns stay in the registry.** Downloads, ratings, approval status are API responses, never in the YAML file. Author-declared fields go in `agent.yaml`. Registry-computed fields go in the API. This is analogous to `package.json` vs. the npm registry API response.
+6. **Hub concerns stay in the hub.** Downloads, ratings, approval status are API responses, never in the YAML file. Author-declared fields go in `agent.yaml`. Hub-computed fields go in the API. This is analogous to `package.json` vs. the npm registry API response.
 
-7. **Open-source the spec, monetize the platform.** The schema is an open standard. The hosted registry with governance, testing, and enterprise features is the product.
+7. **Open-source the spec, monetize the platform.** The schema is an open standard. The hosted hub with governance, testing, and enterprise features is the product.
 
 ---
 
@@ -341,7 +341,7 @@ See [agent-compose.yaml](examples/agent-compose.yaml) for a complete example.
 | **JSON Schema** | Use everywhere types are defined (inputs, outputs, tool params) | Universal across all protocols |
 | **OpenAI Agents SDK** | Reference concepts (`instructions`, `handoffs`, `guardrails`) without adopting SDK-specific structures | Extract patterns, not implementations |
 | **Semver** | Version all agent definitions with semver | Human-readable change magnitude |
-| **OCI / npm** | Use `@scope/name:version` for registry references | Proven namespace pattern |
+| **OCI / npm** | Use `@scope/name:version` for hub references | Proven namespace pattern |
 
 **Key principle: Be a superset, not a subset.** It should be possible to generate an A2A Agent Card, an MCP config, or a CrewAI/OpenAI/AutoGen agent from an `agent.yaml`. The agent definition is the source of truth; framework configs are derived.
 

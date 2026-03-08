@@ -564,10 +564,10 @@ describe('init command', () => {
 // 6. Search command (subprocess integration tests)
 // ---------------------------------------------------------------------------
 describe('search command', () => {
-  it('exits 1 when registry is unreachable', () => {
+  it('exits 1 when hub is unreachable', () => {
     const tmpDir = mkdtempSync(join(tmpdir(), 'search-test-'));
     try {
-      const { exitCode } = runCli('search test-query --registry http://localhost:9999', tmpDir);
+      const { exitCode } = runCli('search test-query --hub-url http://localhost:9999', tmpDir);
       expect(exitCode).toBe(1);
     } finally {
       rmSync(tmpDir, { recursive: true, force: true });
@@ -589,14 +589,14 @@ describe('pull command', () => {
     rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  it('exits 1 when registry is unreachable', () => {
-    const { exitCode } = runCli('pull @acme/test-agent --registry http://localhost:9999', tmpDir);
+  it('exits 1 when hub is unreachable', () => {
+    const { exitCode } = runCli('pull @acme/test-agent --hub-url http://localhost:9999', tmpDir);
     expect(exitCode).toBe(1);
   });
 
   it('refuses to overwrite without --force', () => {
     writeFileSync(join(tmpDir, 'agent.yaml'), 'existing');
-    const { exitCode, stdout } = runCli('pull @acme/test-agent --registry http://localhost:9999', tmpDir);
+    const { exitCode, stdout } = runCli('pull @acme/test-agent --hub-url http://localhost:9999', tmpDir);
     expect(exitCode).toBe(1);
     expect(stdout).toMatch(/already exists/i);
   });
@@ -617,13 +617,13 @@ describe('push command', () => {
   });
 
   it('exits 1 when agent.yaml does not exist', () => {
-    const { exitCode } = runCli('push --registry http://localhost:9999', tmpDir);
+    const { exitCode } = runCli('push --hub-url http://localhost:9999', tmpDir);
     expect(exitCode).toBe(1);
   });
 
   it('exits 1 when agent.yaml is invalid', () => {
     writeFileSync(join(tmpDir, 'agent.yaml'), 'description: no name or model\n');
-    const { exitCode } = runCli('push --registry http://localhost:9999', tmpDir);
+    const { exitCode } = runCli('push --hub-url http://localhost:9999', tmpDir);
     expect(exitCode).toBe(1);
   });
 });
