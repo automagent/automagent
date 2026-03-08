@@ -8,7 +8,8 @@ An open standard for defining AI agents via `agent.yaml` — YAML for humans, JS
 |---------|-------------|
 | [`@automagent/schema`](packages/schema/) | JSON Schema, TypeScript types, and validator |
 | [`@automagent/cli`](packages/cli/) | CLI toolkit: init, validate, run, import, push, pull, search |
-| [`@automagent/registry`](packages/registry/) | Local registry API server (Hono + Postgres) |
+| [`@automagent/registry`](packages/registry/) | Registry API server (Hono + Postgres) |
+| [`@automagent/web`](packages/web/) | Web UI for browsing agent definitions (React + Vite) |
 
 ## Quick Start
 
@@ -26,6 +27,21 @@ Run the agent registry locally with Docker:
 docker compose up -d db          # Start Postgres
 npm run db:migrate -w packages/registry  # Run migrations
 npm run dev -w packages/registry # Start registry on :3000
+```
+
+### Web UI
+
+Browse agents in the registry via the web interface:
+
+```bash
+npm run build -w packages/web    # Build the web UI
+npm run dev -w packages/registry # Registry serves UI at http://localhost:3000
+```
+
+For frontend development with hot reload:
+
+```bash
+npm run dev -w packages/web      # Vite dev server on :5173 (proxies API to :3000)
 ```
 
 Push, pull, and search agents:

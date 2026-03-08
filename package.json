@@ -4,7 +4,8 @@
   "workspaces": [
     "packages/schema",
     "packages/cli",
-    "packages/registry"
+    "packages/registry",
+    "packages/web"
   ],
   "engines": {
     "node": ">=18"
@@ -16,7 +17,7 @@
   "homepage": "https://automagent.dev",
   "license": "Apache-2.0",
   "scripts": {
-    "build": "npm run build -w packages/schema && npm run build -w packages/cli && npm run build -w packages/registry",
+    "build": "npm run build -w packages/schema && npm run build -w packages/cli && npm run build -w packages/registry && npm run build -w packages/web",
     "test": "npm run test --workspaces",
     "lint": "npm run lint --workspaces",
     "clean": "npm run clean --workspaces"

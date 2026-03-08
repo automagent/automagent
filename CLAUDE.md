@@ -6,7 +6,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Automagent — an open standard for defining AI agents via `agent.yaml`. This monorepo contains:
 - `packages/schema` — JSON Schema, TypeScript types, Ajv validator (`@automagent/schema`)
-- `packages/cli` — Reference CLI: init, validate, run, import (`@automagent/cli`)
+- `packages/cli` — Reference CLI: init, validate, run, import, push, pull, search (`@automagent/cli`)
+- `packages/registry` — Registry API server: Hono + Drizzle + Postgres (`@automagent/registry`)
+- `packages/web` — Web UI for browsing agents: React + Vite + Tailwind (`@automagent/web`)
 
 ## Commands
 
@@ -39,4 +41,4 @@ npx vitest run -t "test name pattern"       # Filter by test name
 Auto-detects provider from model name (claude→Anthropic, gpt→OpenAI). SDKs are optional peer dependencies, dynamically imported.
 
 ### Build order
-Schema must build before CLI. The root build script enforces this.
+Schema must build before CLI and registry. Web builds last. The root build script enforces this order: schema → cli → registry → web.
