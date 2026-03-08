@@ -4,6 +4,7 @@ import { stringify } from 'yaml';
 import chalk from 'chalk';
 import { parseYamlFile } from '../utils/yaml.js';
 import { error, info, heading } from '../utils/output.js';
+import { getAuthHeaders } from '../utils/credentials.js';
 
 const DEFAULT_HUB = 'http://localhost:3000';
 
@@ -83,7 +84,9 @@ export function diffCommand(program: Command): void {
       let remoteDef: Record<string, unknown>;
       let remoteVersion: string;
       try {
-        const res = await fetch(url);
+        const res = await fetch(url, {
+          headers: { ...getAuthHeaders() },
+        });
 
         if (res.status === 404) {
           info(`Agent ${scope}/${name} not found in hub. Nothing to compare.`);

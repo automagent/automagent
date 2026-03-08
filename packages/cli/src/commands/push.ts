@@ -2,7 +2,9 @@ import { resolve } from 'node:path';
 import type { Command } from 'commander';
 import { validate } from '@automagent/schema';
 import { parseYamlFile } from '../utils/yaml.js';
+import chalk from 'chalk';
 import { success, error, info, heading } from '../utils/output.js';
+import { getAuthHeaders, loadCredentials } from '../utils/credentials.js';
 
 const DEFAULT_HUB = 'http://localhost:3000';
 
@@ -43,10 +45,19 @@ export function pushCommand(program: Command): void {
 
       const url = `${opts.hubUrl}/v1/agents/${encodeURIComponent(scope)}/${encodeURIComponent(name)}`;
 
+      const creds = loadCredentials();
+      if (!creds) {
+        console.log(chalk.yellow('Warning: Not logged in. Push will fail if the hub requires authentication.'));
+        console.log(chalk.yellow('Run `automagent login` to authenticate.\n'));
+      }
+
       try {
         const res = await fetch(url, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...getAuthHeaders(),
+          },
           body: JSON.stringify({ version, definition: def, tags }),
         });
 

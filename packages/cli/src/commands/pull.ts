@@ -3,6 +3,7 @@ import { existsSync, writeFileSync } from 'node:fs';
 import type { Command } from 'commander';
 import { stringify } from 'yaml';
 import { success, error, info, heading } from '../utils/output.js';
+import { getAuthHeaders } from '../utils/credentials.js';
 import { SCHEMA_HEADER } from '../utils/constants.js';
 
 const DEFAULT_HUB = 'http://localhost:3000';
@@ -51,7 +52,9 @@ export function pullCommand(program: Command): void {
       const url = `${opts.hubUrl}/v1/agents/${encodeURIComponent(parsed.scope)}/${encodeURIComponent(parsed.name)}${parsed.version ? `?version=${parsed.version}` : ''}`;
 
       try {
-        const res = await fetch(url);
+        const res = await fetch(url, {
+          headers: { ...getAuthHeaders() },
+        });
 
         if (res.status === 404) {
           error(`Agent not found: ${ref}`);

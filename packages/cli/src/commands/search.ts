@@ -1,6 +1,7 @@
 import type { Command } from 'commander';
 import chalk from 'chalk';
 import { error, info, heading } from '../utils/output.js';
+import { getAuthHeaders } from '../utils/credentials.js';
 
 const DEFAULT_HUB = 'http://localhost:3000';
 
@@ -32,7 +33,9 @@ export function searchCommand(program: Command): void {
       const url = `${opts.hubUrl}/v1/search?${params}`;
 
       try {
-        const res = await fetch(url);
+        const res = await fetch(url, {
+          headers: { ...getAuthHeaders() },
+        });
 
         if (!res.ok) {
           error(`Hub returned ${res.status}: ${res.statusText}`);
