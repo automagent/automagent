@@ -20,9 +20,17 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 export function detectFormat(filePath: string, data: Record<string, unknown>): SupportedFormat | null {
   const ext = extname(filePath).toLowerCase();
 
-  // CrewAI: YAML with role + goal + backstory
-  if ((ext === '.yaml' || ext === '.yml') && 'role' in data && 'goal' in data && 'backstory' in data) {
-    return 'crewai';
+  // CrewAI: YAML with role + goal + backstory (flat or agents-array wrapper)
+  if (ext === '.yaml' || ext === '.yml') {
+    if ('role' in data && 'goal' in data && 'backstory' in data) {
+      return 'crewai';
+    }
+    if (Array.isArray(data['agents']) && data['agents'].length > 0) {
+      const first = data['agents'][0];
+      if (isRecord(first) && 'role' in first && 'goal' in first && 'backstory' in first) {
+        return 'crewai';
+      }
+    }
   }
 
   // OpenAI: JSON with instructions + model (+ optionally tools)
@@ -186,9 +194,17 @@ export function importCommand(program: Command): void {
       // Run the appropriate importer
       let agentData: Record<string, unknown>;
       switch (format) {
-        case 'crewai':
-          agentData = importCrewAI(data as Parameters<typeof importCrewAI>[0]);
+        case 'crewai': {
+          let crewaiData = data;
+          if (Array.isArray(data['agents']) && data['agents'].length > 0) {
+            if (data['agents'].length > 1) {
+              info(`Found ${data['agents'].length} agents in file — only the first agent will be imported`);
+            }
+            crewaiData = data['agents'][0] as Record<string, unknown>;
+          }
+          agentData = importCrewAI(crewaiData as Parameters<typeof importCrewAI>[0]);
           break;
+        }
         case 'openai':
           agentData = importOpenAI(data as Parameters<typeof importOpenAI>[0]);
           break;

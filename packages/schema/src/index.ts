@@ -40,6 +40,26 @@ export interface ModelConfig {
 }
 
 /**
+ * Shorthand model configuration using default/fallback string identifiers.
+ */
+export interface ModelShorthand {
+  /** Default model identifier, e.g. "claude-sonnet-4-20250514" */
+  default: string;
+  /** Fallback model identifier if the default is unavailable */
+  fallback?: string;
+  /** Model-specific settings */
+  settings?: {
+    temperature?: number;
+    /** Must be a whole number (JSON Schema type: integer) */
+    max_tokens?: number;
+    [key: string]: unknown;
+  };
+  /** Compatible model identifiers */
+  compatible?: string[];
+  [key: string]: unknown;
+}
+
+/**
  * Structured instructions configuration.
  * Simple form: just a string with the system prompt.
  */
@@ -244,7 +264,7 @@ export interface AgentDefinition {
   /** Human-readable description of what the agent does. minLength: 1 */
   description: string;
   /** Model identifier (string) or full model configuration (object) */
-  model: string | ModelConfig;
+  model: string | ModelConfig | ModelShorthand;
   /** Schema version. Defaults to "v1". */
   apiVersion?: string;
   /** Definition type: "agent" or "team". Defaults to "agent". */

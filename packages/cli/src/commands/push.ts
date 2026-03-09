@@ -5,8 +5,7 @@ import { parseYamlFile } from '../utils/yaml.js';
 import chalk from 'chalk';
 import { success, error, info, heading } from '../utils/output.js';
 import { getAuthHeaders, loadCredentials } from '../utils/credentials.js';
-
-const DEFAULT_HUB = 'https://hub.automagent.dev';
+import { DEFAULT_HUB } from '../utils/constants.js';
 
 export function pushCommand(program: Command): void {
   program

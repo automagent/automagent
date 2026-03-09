@@ -265,9 +265,7 @@ export function validateCommand(program: Command): void {
           `Validation failed with ${errorCount} error(s) and ${warnings} warning(s).`,
         );
         process.exitCode = 1;
-      }
-
-      if (warnings > 0) {
+      } else if (warnings > 0) {
         warn(`Valid with ${warnings} warning(s).`);
       } else {
         success('Valid — no errors or warnings.');

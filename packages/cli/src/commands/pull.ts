@@ -4,9 +4,7 @@ import type { Command } from 'commander';
 import { stringify } from 'yaml';
 import { success, error, info, heading } from '../utils/output.js';
 import { getAuthHeaders } from '../utils/credentials.js';
-import { SCHEMA_HEADER } from '../utils/constants.js';
-
-const DEFAULT_HUB = 'https://hub.automagent.dev';
+import { SCHEMA_HEADER, DEFAULT_HUB } from '../utils/constants.js';
 
 export function parseAgentRef(ref: string): { scope: string; name: string; version?: string } {
   const versionSplit = ref.split(':');

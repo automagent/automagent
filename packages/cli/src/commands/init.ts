@@ -116,6 +116,10 @@ export function initCommand(program: Command): void {
 
       let config: AgentConfig;
       try {
+        if (!opts.quick && !process.stdin.isTTY) {
+          info('Non-interactive mode detected, using defaults. Use --quick with --name/--description/--model to customize.');
+          opts.quick = true;
+        }
         config = opts.quick
           ? buildQuickConfig(opts)
           : await promptForConfig();

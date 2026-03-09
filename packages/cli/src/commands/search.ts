@@ -2,8 +2,7 @@ import type { Command } from 'commander';
 import chalk from 'chalk';
 import { error, info, heading } from '../utils/output.js';
 import { getAuthHeaders } from '../utils/credentials.js';
-
-const DEFAULT_HUB = 'https://hub.automagent.dev';
+import { DEFAULT_HUB } from '../utils/constants.js';
 
 interface SearchResult {
   agents: Array<{

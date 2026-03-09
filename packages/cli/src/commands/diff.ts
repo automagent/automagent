@@ -5,8 +5,7 @@ import chalk from 'chalk';
 import { parseYamlFile } from '../utils/yaml.js';
 import { error, info, heading } from '../utils/output.js';
 import { getAuthHeaders } from '../utils/credentials.js';
-
-const DEFAULT_HUB = 'https://hub.automagent.dev';
+import { DEFAULT_HUB } from '../utils/constants.js';
 
 function diffLines(localLines: string[], remoteLines: string[]): string[] {
   const output: string[] = [];

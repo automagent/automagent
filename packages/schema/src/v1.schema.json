@@ -43,6 +43,9 @@
         },
         {
           "$ref": "#/definitions/ModelConfig"
+        },
+        {
+          "$ref": "#/definitions/ModelShorthand"
         }
       ]
     },
@@ -217,6 +220,38 @@
               "id": { "type": "string" },
               "score": { "type": "number" }
             }
+          }
+        }
+      }
+    },
+    "ModelShorthand": {
+      "type": "object",
+      "description": "Shorthand model configuration using default/fallback string identifiers.",
+      "required": ["default"],
+      "additionalProperties": true,
+      "properties": {
+        "default": {
+          "type": "string",
+          "description": "Default model identifier, e.g. 'claude-sonnet-4-20250514'"
+        },
+        "fallback": {
+          "type": "string",
+          "description": "Fallback model identifier if the default is unavailable."
+        },
+        "settings": {
+          "type": "object",
+          "description": "Model-specific settings (temperature, max_tokens, etc.).",
+          "additionalProperties": true,
+          "properties": {
+            "temperature": { "type": "number" },
+            "max_tokens": { "type": "integer" }
+          }
+        },
+        "compatible": {
+          "type": "array",
+          "description": "List of compatible model identifiers.",
+          "items": {
+            "type": "string"
           }
         }
       }
