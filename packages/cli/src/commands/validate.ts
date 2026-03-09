@@ -9,7 +9,7 @@ import { success, warn, error, info, heading } from '../utils/output.js';
  * Known unpinned model aliases that should trigger a warning.
  * These are short names without date or version suffixes.
  */
-const UNPINNED_MODEL_PATTERNS: ReadonlySet<string> = new Set([
+export const UNPINNED_MODEL_PATTERNS: ReadonlySet<string> = new Set([
   'gpt-4',
   'gpt-4o',
   'gpt-4o-mini',
@@ -34,7 +34,7 @@ const SECRET_PREFIXES = ['sk-', 'key-', 'AKIA'] as const;
  * Checks whether a string looks like a high-entropy secret (base64-like
  * with mixed case and digits, longer than 30 characters).
  */
-function looksLikeSecret(value: string): boolean {
+export function looksLikeSecret(value: string): boolean {
   for (const prefix of SECRET_PREFIXES) {
     if (value.startsWith(prefix)) {
       return true;
@@ -60,7 +60,7 @@ function looksLikeSecret(value: string): boolean {
  * Recursively collects all string values from an object, paired with
  * a human-readable path for error reporting.
  */
-function collectStringValues(
+export function collectStringValues(
   obj: unknown,
   path: string = '',
 ): Array<{ path: string; value: string }> {
@@ -86,7 +86,7 @@ function collectStringValues(
  * Runs all validation checks against a parsed agent definition and returns
  * structured counts of warnings and errors emitted.
  */
-function runChecks(
+export function runChecks(
   data: unknown,
   yamlDir: string,
 ): { warnings: number; errors: number } {

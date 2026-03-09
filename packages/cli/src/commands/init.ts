@@ -13,7 +13,7 @@ const DEFAULT_NAME = 'my-agent';
 const DEFAULT_DESCRIPTION = 'A helpful assistant';
 const DEFAULT_INSTRUCTIONS = 'You are a helpful assistant.';
 
-interface AgentConfig {
+export interface AgentConfig {
   apiVersion: string;
   name: string;
   description: string;
@@ -21,11 +21,11 @@ interface AgentConfig {
   instructions: string;
 }
 
-function validateName(name: string): boolean {
+export function validateName(name: string): boolean {
   return NAME_PATTERN.test(name) && name.length <= NAME_MAX_LENGTH;
 }
 
-function buildYaml(config: AgentConfig): string {
+export function buildYaml(config: AgentConfig): string {
   const yamlBody = stringify(config, { lineWidth: 0 });
   return `${SCHEMA_HEADER}\n${yamlBody}`;
 }
@@ -67,7 +67,7 @@ async function promptForConfig(): Promise<AgentConfig> {
   }
 }
 
-function buildQuickConfig(opts: {
+export function buildQuickConfig(opts: {
   name?: string;
   description?: string;
   model?: string;

@@ -10,14 +10,14 @@ import { importOpenAI } from '../importers/openai.js';
 import { importLangChain } from '../importers/langchain.js';
 import { SCHEMA_HEADER } from '../utils/constants.js';
 
-type SupportedFormat = 'crewai' | 'openai' | 'langchain';
+export type SupportedFormat = 'crewai' | 'openai' | 'langchain';
 const TODO_COMMENT = '# TODO: Review';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function detectFormat(filePath: string, data: Record<string, unknown>): SupportedFormat | null {
+export function detectFormat(filePath: string, data: Record<string, unknown>): SupportedFormat | null {
   const ext = extname(filePath).toLowerCase();
 
   // CrewAI: YAML with role + goal + backstory
@@ -42,7 +42,7 @@ function detectFormat(filePath: string, data: Record<string, unknown>): Supporte
   return null;
 }
 
-function parseInputFile(filePath: string): Record<string, unknown> {
+export function parseInputFile(filePath: string): Record<string, unknown> {
   const ext = extname(filePath).toLowerCase();
 
   if (ext === '.yaml' || ext === '.yml') {
@@ -68,7 +68,7 @@ function parseInputFile(filePath: string): Record<string, unknown> {
   throw new Error(`Unsupported file extension: ${ext}. Supported: .yaml, .yml, .json`);
 }
 
-function addTodoComments(yamlStr: string, agentData: Record<string, unknown>): string {
+export function addTodoComments(yamlStr: string, agentData: Record<string, unknown>): string {
   const lines = yamlStr.split('\n');
   const result: string[] = [];
 
@@ -94,7 +94,7 @@ function addTodoComments(yamlStr: string, agentData: Record<string, unknown>): s
   return result.join('\n');
 }
 
-function runValidation(data: Record<string, unknown>): void {
+export function runValidation(data: Record<string, unknown>): void {
   // Remove any internal comment markers before validation
   const cleanData = { ...data };
   for (const key of Object.keys(cleanData)) {

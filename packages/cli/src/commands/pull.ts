@@ -8,7 +8,7 @@ import { SCHEMA_HEADER } from '../utils/constants.js';
 
 const DEFAULT_HUB = 'http://localhost:3000';
 
-function parseAgentRef(ref: string): { scope: string; name: string; version?: string } {
+export function parseAgentRef(ref: string): { scope: string; name: string; version?: string } {
   const versionSplit = ref.split(':');
   const refPart = versionSplit[0];
   const version = versionSplit[1];
