@@ -6,7 +6,7 @@ import { success, error, info, heading } from '../utils/output.js';
 import { getAuthHeaders } from '../utils/credentials.js';
 import { SCHEMA_HEADER } from '../utils/constants.js';
 
-const DEFAULT_HUB = 'http://localhost:3000';
+const DEFAULT_HUB = 'https://hub.automagent.dev';
 
 export function parseAgentRef(ref: string): { scope: string; name: string; version?: string } {
   const versionSplit = ref.split(':');

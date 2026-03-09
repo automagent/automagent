@@ -44,7 +44,7 @@ Key subsystems:
 - **Validation pipeline** (`src/commands/validate.ts`): JSON schema check → model pinning warning → secret detection (API key patterns + high-entropy base64) → context file existence
 - **Provider abstraction** (`src/runtime/agent-runner.ts`): Auto-detects from model name (`claude-*` → Anthropic, `gpt-*` → OpenAI). SDKs are optional peer deps, dynamically imported
 - **Framework importers** (`src/importers/`): CrewAI, OpenAI Assistants, and LangChain → automagent YAML. Unmapped fields go to `extensions.<framework>`
-- **Hub commands** (`push`, `pull`, `search`, `diff`): Talk to a hub API at `http://localhost:3000` by default (configurable via `--hub-url`)
+- **Hub commands** (`push`, `pull`, `search`, `diff`): Talk to a hub API at `https://hub.automagent.dev` by default (configurable via `--hub-url`)
 
 ### CLI-Schema coupling
 - CLI imports `validate`, `AgentDefinition`, `ModelConfig`, `ToolDefinition`, `ValidationResult` from schema

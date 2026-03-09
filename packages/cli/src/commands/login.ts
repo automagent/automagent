@@ -3,7 +3,7 @@ import chalk from 'chalk';
 import { createServer } from 'node:http';
 import { saveCredentials, loadCredentials, clearCredentials } from '../utils/credentials.js';
 
-const DEFAULT_HUB = 'http://localhost:3000';
+const DEFAULT_HUB = 'https://hub.automagent.dev';
 
 export function registerLogin(program: Command): void {
   program

@@ -3,7 +3,7 @@ import chalk from 'chalk';
 import { error, info, heading } from '../utils/output.js';
 import { getAuthHeaders } from '../utils/credentials.js';
 
-const DEFAULT_HUB = 'http://localhost:3000';
+const DEFAULT_HUB = 'https://hub.automagent.dev';
 
 interface SearchResult {
   agents: Array<{
