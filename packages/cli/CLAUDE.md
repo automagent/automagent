@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Is
 
-`@automagent/cli` — a CLI toolkit for the automagent agent definition standard. Defines agents in YAML, validates them against a schema, runs them interactively via Anthropic or OpenAI, and imports from CrewAI and OpenAI Assistants formats.
+`automagent` — a CLI toolkit for the automagent agent definition standard. Defines agents in YAML, validates them against a schema, runs them interactively via Anthropic or OpenAI, and imports from CrewAI and OpenAI Assistants formats.
 
 ## Commands
 

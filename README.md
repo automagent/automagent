@@ -1,6 +1,6 @@
 # Automagent
 
-[![npm version](https://img.shields.io/npm/v/@automagent/cli)](https://www.npmjs.com/package/@automagent/cli)
+[![npm version](https://img.shields.io/npm/v/automagent)](https://www.npmjs.com/package/automagent)
 [![npm version](https://img.shields.io/npm/v/@automagent/schema)](https://www.npmjs.com/package/@automagent/schema)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
@@ -11,12 +11,12 @@ An open standard for defining AI agents via `agent.yaml` — YAML for humans, JS
 | Package | Description |
 |---------|-------------|
 | [`@automagent/schema`](packages/schema/) | JSON Schema, TypeScript types, and validator |
-| [`@automagent/cli`](packages/cli/) | CLI toolkit: init, validate, run, import, push, pull, search, diff, login |
+| [`automagent`](packages/cli/) | CLI toolkit: init, validate, run, import, push, pull, search, diff, login |
 
 ## Quick Start
 
 ```bash
-npm install -g @automagent/cli
+npm install -g automagent
 automagent init
 automagent validate
 ```

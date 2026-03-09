@@ -1,11 +1,11 @@
-# @automagent/cli
+# automagent
 
-The CLI toolkit for the [automagent](https://github.com/automagent/automagent) agent definition standard. Define AI agents in YAML, validate them, run them interactively, and import from CrewAI and OpenAI formats.
+The CLI toolkit for the [Automagent](https://github.com/automagent/automagent) agent definition standard. Define AI agents in YAML, validate them, run them interactively, and import from CrewAI and OpenAI formats.
 
 ## Install
 
 ```bash
-npm install -g @automagent/cli
+npm install -g automagent
 ```
 
 To run agents, install the SDK for your provider:

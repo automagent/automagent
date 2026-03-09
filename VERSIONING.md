@@ -5,7 +5,7 @@ This document defines the versioning, release, and publishing policy for the two
 | Package | npm name | Current version |
 |---------|----------|----------------|
 | Schema | `@automagent/schema` | 0.1.0 |
-| CLI | `@automagent/cli` | 0.1.0 |
+| CLI | `automagent` | 0.1.0 |
 
 ---
 
@@ -81,7 +81,7 @@ The CLI and schema versions **do not need to be identical**. They are separate p
 
 However, maintain a clear compatibility matrix in release notes:
 
-| @automagent/cli | @automagent/schema |
+| automagent | @automagent/schema |
 |-----------------|-------------------|
 | 0.1.x | 0.1.x |
 | 0.2.x | 0.1.x or 0.2.x |
@@ -159,7 +159,7 @@ Run through this list for every release:
 ### 4.5 Publish
 
 - [ ] Publish `@automagent/schema` first (CLI depends on it).
-- [ ] Publish `@automagent/cli` second.
+- [ ] Publish `automagent` second.
 - [ ] Verify both packages are visible on npmjs.com.
 
 ### 4.6 Post-publish
@@ -223,7 +223,7 @@ npm publish --workspace=packages/cli
 
 # 5. Tag
 git add .
-git commit -m "release: @automagent/cli v$(node -p "require('./packages/cli/package.json').version")"
+git commit -m "release: automagent v$(node -p "require('./packages/cli/package.json').version")"
 git tag "cli-v$(node -p "require('./packages/cli/package.json').version")"
 git push && git push --tags
 ```
@@ -260,7 +260,7 @@ npm publish --workspace=packages/cli
 
 # 8. Commit and tag
 git add .
-git commit -m "release: @automagent/schema v$(node -p "require('./packages/schema/package.json').version"), @automagent/cli v$(node -p "require('./packages/cli/package.json').version")"
+git commit -m "release: @automagent/schema v$(node -p "require('./packages/schema/package.json').version"), automagent v$(node -p "require('./packages/cli/package.json').version")"
 git tag "schema-v$(node -p "require('./packages/schema/package.json').version")"
 git tag "cli-v$(node -p "require('./packages/cli/package.json').version")"
 git push && git push --tags

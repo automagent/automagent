@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Automagent — an open standard for defining AI agents via `agent.yaml`. This monorepo contains:
 - `packages/schema` — JSON Schema, TypeScript types, Ajv validator (`@automagent/schema`)
-- `packages/cli` — Reference CLI (`@automagent/cli`)
+- `packages/cli` — Reference CLI (`automagent`)
 
 Both packages are ESM-only, TypeScript strict mode, target ES2022, module NodeNext. Built with tsup, tested with vitest.
 

@@ -3,7 +3,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import type { Command } from 'commander';
 import { parseYamlFile } from '../utils/yaml.js';
 import { validate } from '@automagent/schema';
-import type { AgentDefinition, ModelConfig, ToolDefinition } from '@automagent/schema';
+import type { AgentDefinition, ModelConfig, ModelShorthand, ToolDefinition } from '@automagent/schema';
 import { error, info, heading } from '../utils/output.js';
 import { runAgent } from '../runtime/agent-runner.js';
 import type { RunConfig } from '../runtime/agent-runner.js';
@@ -19,6 +19,14 @@ const PROVIDER_ENV: Record<Provider, string> = {
   anthropic: 'ANTHROPIC_API_KEY',
   openai: 'OPENAI_API_KEY',
 };
+
+export function normalizeModel(model: string | ModelConfig | ModelShorthand): string | ModelConfig {
+  if (typeof model === 'string') return model;
+  if ('id' in model) return model as ModelConfig;
+  // ModelShorthand: convert to ModelConfig
+  const shorthand = model as ModelShorthand;
+  return { id: shorthand.default, ...(shorthand.settings ? { settings: shorthand.settings } : {}) } as ModelConfig;
+}
 
 export function detectProvider(model: string | ModelConfig): ProviderInfo {
   // Object form: check explicit provider field first, then id string
@@ -119,8 +127,9 @@ export function runCommand(program: Command): void {
       const def = data as AgentDefinition;
 
       // Determine model (flag overrides definition)
-      const modelSource = opts.model ?? def.model;
-      const modelString = opts.model ?? resolveModelString(def.model);
+      const normalized = normalizeModel(def.model);
+      const modelSource = opts.model ?? normalized;
+      const modelString = opts.model ?? resolveModelString(normalized);
       const { provider, envVar } = detectProvider(modelSource);
 
       // Check API key

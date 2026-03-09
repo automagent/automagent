@@ -15,7 +15,7 @@ npm run test
 | Package | Path | Description |
 |---------|------|-------------|
 | `@automagent/schema` | `packages/schema` | JSON Schema, TypeScript types, Ajv validator |
-| `@automagent/cli` | `packages/cli` | Reference CLI: init, validate, run, import |
+| `automagent` | `packages/cli` | Reference CLI: init, validate, run, import |
 
 **Build order:** Schema must build before CLI. The root build script enforces this.
 
