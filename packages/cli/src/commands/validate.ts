@@ -75,6 +75,8 @@ export function collectStringValues(
   } else if (obj !== null && typeof obj === 'object') {
     for (const [key, value] of Object.entries(obj as Record<string, unknown>)) {
       const nextPath = path ? `${path}.${key}` : key;
+      // Also check the key itself for secrets
+      results.push({ path: `${nextPath}(key)`, value: key });
       results.push(...collectStringValues(value, nextPath));
     }
   }

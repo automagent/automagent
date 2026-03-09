@@ -64,6 +64,16 @@ describe('detectFormat', () => {
     const data = { instructions: 'You are helpful', model: 'gpt-4', system_message: 'Be nice' };
     expect(detectFormat('agent.json', data)).toBe('openai');
   });
+
+  it('CrewAI takes priority when .yaml has CrewAI fields plus other fields', () => {
+    const data = { role: 'analyst', goal: 'analyze', backstory: 'expert', instructions: 'help', model: 'gpt-4' };
+    expect(detectFormat('agent.yaml', data)).toBe('crewai');
+  });
+
+  it('returns null for .json with instructions but no model (partial OpenAI match)', () => {
+    const data = { instructions: 'You are helpful' };
+    expect(detectFormat('agent.json', data)).toBeNull();
+  });
 });
 
 describe('addTodoComments', () => {
@@ -99,7 +109,11 @@ describe('addTodoComments', () => {
     const resultLines = result.split('\n');
     expect(resultLines.length).toBe(originalLines.length);
     for (let i = 0; i < originalLines.length; i++) {
-      expect(resultLines[i]).toContain(originalLines[i]);
+      if (originalLines[i].startsWith('description:')) {
+        expect(resultLines[i]).toBe(originalLines[i] + ' # TODO: Review');
+      } else {
+        expect(resultLines[i]).toBe(originalLines[i]);
+      }
     }
   });
 });

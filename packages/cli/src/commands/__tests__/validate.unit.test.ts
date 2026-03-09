@@ -87,6 +87,26 @@ describe('looksLikeSecret', () => {
   it('treats empty string as safe', () => {
     expect(looksLikeSecret('')).toBe(false);
   });
+
+  it('does not detect a secret embedded in a longer sentence', () => {
+    expect(looksLikeSecret('Use token sk-proj-abc123def456 for auth')).toBe(false);
+  });
+
+  it('does not detect uppercase SK- prefix (case sensitive)', () => {
+    expect(looksLikeSecret('SK-abc123')).toBe(false);
+  });
+
+  it('does not detect uppercase KEY- prefix (case sensitive)', () => {
+    expect(looksLikeSecret('KEY-abc123')).toBe(false);
+  });
+
+  it('does not detect lowercase akia prefix (case sensitive)', () => {
+    expect(looksLikeSecret('akia1234567890abcdef')).toBe(false);
+  });
+
+  it('detects a realistic AWS access key starting with AKIA', () => {
+    expect(looksLikeSecret('AKIAIOSFODNN7EXAMPLE')).toBe(true);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -97,19 +117,26 @@ describe('collectStringValues', () => {
   it('collects from a flat object', () => {
     const result = collectStringValues({ a: 'hello', b: 'world' });
     expect(result).toEqual([
+      { path: 'a(key)', value: 'a' },
       { path: 'a', value: 'hello' },
+      { path: 'b(key)', value: 'b' },
       { path: 'b', value: 'world' },
     ]);
   });
 
   it('collects from nested object with dotted paths', () => {
     const result = collectStringValues({ a: { b: 'deep' } });
-    expect(result).toEqual([{ path: 'a.b', value: 'deep' }]);
+    expect(result).toEqual([
+      { path: 'a(key)', value: 'a' },
+      { path: 'a.b(key)', value: 'b' },
+      { path: 'a.b', value: 'deep' },
+    ]);
   });
 
   it('collects from arrays with bracket notation', () => {
     const result = collectStringValues({ items: ['x', 'y'] });
     expect(result).toEqual([
+      { path: 'items(key)', value: 'items' },
       { path: 'items[0]', value: 'x' },
       { path: 'items[1]', value: 'y' },
     ]);
@@ -123,15 +150,22 @@ describe('collectStringValues', () => {
       },
     });
     expect(result).toEqual([
+      { path: 'top(key)', value: 'top' },
+      { path: 'top.list(key)', value: 'list' },
       { path: 'top.list[0]', value: 'a' },
       { path: 'top.list[1]', value: 'b' },
+      { path: 'top.key(key)', value: 'key' },
       { path: 'top.key', value: 'c' },
     ]);
   });
 
   it('returns empty for non-string primitives', () => {
     const result = collectStringValues({ a: 42, b: true, c: null });
-    expect(result).toEqual([]);
+    expect(result).toEqual([
+      { path: 'a(key)', value: 'a' },
+      { path: 'b(key)', value: 'b' },
+      { path: 'c(key)', value: 'c' },
+    ]);
   });
 
   it('handles empty object', () => {
@@ -141,6 +175,13 @@ describe('collectStringValues', () => {
   it('collects a single string at root level with empty path', () => {
     const result = collectStringValues('root-value');
     expect(result).toEqual([{ path: '', value: 'root-value' }]);
+  });
+
+  it('collects object keys as values', () => {
+    const results = collectStringValues({ 'sk-secret123': 'config-value' });
+    const keyEntry = results.find(r => r.path.includes('(key)'));
+    expect(keyEntry).toBeDefined();
+    expect(keyEntry!.value).toBe('sk-secret123');
   });
 });
 
@@ -262,5 +303,21 @@ describe('runChecks', () => {
   it('returns 0 warnings when no instructions object is defined', () => {
     const { warnings } = runChecks(minimalAgent(), '/tmp');
     expect(warnings).toBe(0);
+  });
+
+  it('detects secrets in nested extension fields', () => {
+    const { errors } = runChecks({
+      name: 'test', description: 'test', model: 'gpt-4',
+      extensions: { custom: { apiKey: 'sk-1234567890abcdef' } }
+    }, '/tmp');
+    expect(errors).toBeGreaterThan(0);
+  });
+
+  it('detects secret used as object key', () => {
+    const { errors } = runChecks({
+      name: 'test', description: 'test', model: 'gpt-4',
+      extensions: { 'sk-1234567890abcdef': 'some-value' }
+    }, '/tmp');
+    expect(errors).toBeGreaterThan(0);
   });
 });
