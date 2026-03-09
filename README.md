@@ -11,7 +11,7 @@ An open standard for defining AI agents via `agent.yaml` — YAML for humans, JS
 | Package | Description |
 |---------|-------------|
 | [`@automagent/schema`](packages/schema/) | JSON Schema, TypeScript types, and validator |
-| [`@automagent/cli`](packages/cli/) | CLI toolkit: init, validate, run, import, push, pull, search |
+| [`@automagent/cli`](packages/cli/) | CLI toolkit: init, validate, run, import, push, pull, search, diff, login |
 
 ## Quick Start
 

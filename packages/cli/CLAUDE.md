@@ -27,7 +27,7 @@ npx vitest run -t "test name pattern"
 ### CLI Command Pattern
 Each command is a separate module in `src/commands/` exporting `registerCommand(program: Command): void`. Commands are registered in `src/index.ts`. The CLI binary is `automagent` (configured in package.json `bin`).
 
-Commands: `init`, `validate`, `run`, `import`, `push`, `pull`, `search`, `diff`. The `login` command is a stub in `stubs.ts` (hub auth not yet implemented).
+Commands: `init`, `validate`, `run`, `import`, `push`, `pull`, `search`, `diff`, `login`, `logout`, `whoami`.
 
 ### Provider Abstraction (`src/runtime/agent-runner.ts`)
 The `run` command auto-detects provider from model name (`claude-*` → Anthropic, `gpt-*` → OpenAI). SDKs are dynamically imported as optional peer dependencies — the CLI won't crash if they're missing until `run` is invoked.
@@ -36,7 +36,7 @@ The `run` command auto-detects provider from model name (`claude-*` → Anthropi
 Four-step validation: JSON schema check (via `@automagent/schema`), model pinning warning, secret detection (scans all strings for API key patterns and high-entropy base64), and context file existence verification.
 
 ### Framework Importers (`src/importers/`)
-Convert CrewAI and OpenAI Assistants formats to automagent YAML. Unmapped fields are preserved in `extensions.<framework>`. Schema validation runs post-import.
+Convert CrewAI, OpenAI Assistants, and LangChain formats to automagent YAML. Unmapped fields are preserved in `extensions.<framework>`. Schema validation runs post-import.
 
 ### Utilities
 - `src/utils/output.ts` — Colored console helpers (chalk)
