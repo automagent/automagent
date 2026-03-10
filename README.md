@@ -1,8 +1,16 @@
-# Automagent
+  <p align="center">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://automagent.dev/logo/lockup-dark.svg">
+      <source media="(prefers-color-scheme: light)" srcset="https://automagent.dev/logo/lockup-light.svg">
+      <img alt="automagent" src="https://automagent.dev/logo/lockup-dark.svg" width="280">
+    </picture>
+  </p>
 
-[![npm version](https://img.shields.io/npm/v/automagent)](https://www.npmjs.com/package/automagent)
-[![npm version](https://img.shields.io/npm/v/@automagent/schema)](https://www.npmjs.com/package/@automagent/schema)
-[![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+<p align="center">
+  <a href="https://www.npmjs.com/package/automagent"><img src="https://img.shields.io/npm/v/automagent" alt="npm version"></a>
+  <a href="https://www.npmjs.com/package/@automagent/schema"><img src="https://img.shields.io/npm/v/@automagent/schema" alt="npm version"></a>
+  <a href="https://opensource.org/licenses/Apache-2.0"><img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg" alt="License: Apache-2.0"></a>
+</p>
 
 **An open standard for defining AI agents via `agent.yaml` — YAML for humans, JSON Schema for machines.**
 
