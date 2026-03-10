@@ -1,0 +1,37 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/automagent-ai/automagent/main/packages/schema/src/compose.schema.json
+kind: compose
+name: content-pipeline
+version: "0.1.0"
+description: >
+  A content production pipeline that researches a topic, drafts an article,
+  and reviews it for quality and accuracy before publishing.
+
+agents:
+  - ref: "@acme/research-agent:^1.0.0"
+    role: researcher
+    description: Gathers sources and key facts on the given topic.
+
+  - ref: "@acme/draft-writer:^2.1.0"
+    role: writer
+    description: Produces a polished article draft from research notes.
+
+  - ref: "@acme/editorial-reviewer:^1.3.0"
+    role: reviewer
+    description: Reviews the draft for accuracy, tone, and style guidelines.
+
+workflow:
+  type: sequential
+  steps:
+    - agent: researcher
+    - agent: writer
+      input_from: researcher
+    - agent: reviewer
+      input_from: writer
+
+metadata:
+  owner: content-team
+  tags:
+    - content
+    - pipeline
+    - publishing
+  license: MIT

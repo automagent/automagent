@@ -1,0 +1,75 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/automagent-ai/automagent/main/packages/schema/src/v1.schema.json
+name: research-assistant
+version: "0.2.0"
+description: >
+  A research assistant that searches the web, summarizes findings,
+  and produces structured reports from multiple sources.
+
+model:
+  id: claude-sonnet-4-20250514
+  provider: anthropic
+  settings:
+    temperature: 0.3
+    max_tokens: 4096
+  fallback:
+    id: gpt-4o
+    provider: openai
+
+instructions: >
+  You are a research assistant. When given a topic, search the web for
+  relevant sources, summarize key findings, and produce a clear report.
+  Always cite your sources. Prefer recent, authoritative references.
+
+tools:
+  - name: web_search
+    description: Search the web for information on a given query.
+    inputSchema:
+      type: object
+      required:
+        - query
+      properties:
+        query:
+          type: string
+          description: The search query string.
+        max_results:
+          type: integer
+          description: Maximum number of results to return.
+          default: 10
+
+  - name: summarize
+    description: Summarize a block of text into key bullet points.
+    inputSchema:
+      type: object
+      required:
+        - text
+      properties:
+        text:
+          type: string
+          description: The text to summarize.
+        max_bullets:
+          type: integer
+          description: Maximum number of bullet points.
+          default: 5
+
+mcp:
+  - name: filesystem
+    transport: stdio
+    command: npx
+    args:
+      - "-y"
+      - "@modelcontextprotocol/server-filesystem"
+      - "./data"
+
+context:
+  - file: "./docs/research-guidelines.md"
+
+metadata:
+  owner: research-team
+  tags:
+    - research
+    - summarization
+    - web-search
+  categories:
+    domain: research
+    function: assistant
+    maturity: beta

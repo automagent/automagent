@@ -4,6 +4,10 @@
 **Schema URL:** `https://automagent.dev/schema/v1.json`
 **Compose Schema URL:** `https://automagent.dev/schema/compose/v1.json`
 
+> **Note:** The canonical schema URLs above are planned for hosting at automagent.dev. For editor autocomplete today, use the raw GitHub URLs:
+> - Agent schema: `https://raw.githubusercontent.com/automagent-ai/automagent/main/packages/schema/src/v1.schema.json`
+> - Compose schema: `https://raw.githubusercontent.com/automagent-ai/automagent/main/packages/schema/src/compose.schema.json`
+
 ---
 
 ## 1. Overview
@@ -57,11 +61,11 @@ description: Answers questions about our codebase
 model: claude-sonnet
 ```
 
-Three fields. One concept: "give the agent a name, a purpose, and a brain." See [minimal.yaml](examples/minimal.yaml).
+Three fields. One concept: "give the agent a name, a purpose, and a brain." See [minimal.yaml](../examples/minimal.yaml).
 
 ### Tier 2: Intermediate (Team Tool)
 
-Adds model settings, tools, MCP integrations, context sources, and metadata. See [intermediate.yaml](examples/intermediate.yaml).
+Adds model settings, tools, MCP integrations, context sources, and metadata. See [intermediate.yaml](../examples/intermediate.yaml).
 
 New concepts introduced:
 - **`model` as object** -- Same field, richer value. Pin a specific model version and configure settings.
@@ -72,7 +76,7 @@ New concepts introduced:
 
 ### Tier 3: Enterprise (Production Agent)
 
-Adds governance, guardrails, evaluation, triggers, environment overrides, dependencies, and framework extensions. See [enterprise.yaml](examples/enterprise.yaml).
+Adds governance, guardrails, evaluation, triggers, environment overrides, dependencies, and framework extensions. See [enterprise.yaml](../examples/enterprise.yaml).
 
 New concepts introduced:
 - **`instructions` as object** -- Structured system prompt with persona configuration.
@@ -327,7 +331,7 @@ Multi-agent compositions use a separate file -- `agent-compose.yaml` -- mirrorin
 }
 ```
 
-See [agent-compose.yaml](examples/agent-compose.yaml) for a complete example.
+See [agent-compose.yaml](../examples/agent-compose.yaml) for a complete example.
 
 ---
 

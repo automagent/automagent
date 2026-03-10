@@ -1,0 +1,167 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/automagent-ai/automagent/main/packages/schema/src/v1.schema.json
+name: financial-compliance-agent
+version: "1.0.0"
+description: >
+  Reviews financial transactions and documents for regulatory compliance,
+  flags potential violations, and generates audit reports.
+
+model:
+  id: claude-sonnet-4-20250514
+  provider: anthropic
+  settings:
+    temperature: 0.1
+    max_tokens: 8192
+
+instructions:
+  system: >
+    You are a financial compliance reviewer. Analyze transactions and documents
+    for regulatory violations. Always cite the specific regulation when flagging
+    an issue. Never provide legal advice — only flag potential concerns for human
+    review. Be precise, thorough, and conservative in your assessments.
+  persona:
+    role: Senior Compliance Analyst
+    tone: formal
+    expertise:
+      - SEC regulations
+      - AML/KYC procedures
+      - SOX compliance
+      - GDPR financial data
+
+inputs:
+  schema:
+    type: object
+    required:
+      - transaction_id
+      - amount
+      - currency
+    properties:
+      transaction_id:
+        type: string
+      amount:
+        type: number
+      currency:
+        type: string
+      counterparty:
+        type: string
+      documents:
+        type: array
+        items:
+          type: string
+
+outputs:
+  schema:
+    type: object
+    required:
+      - risk_score
+      - flags
+      - recommendation
+    properties:
+      risk_score:
+        type: number
+        minimum: 0
+        maximum: 100
+      flags:
+        type: array
+        items:
+          type: object
+          properties:
+            regulation:
+              type: string
+            severity:
+              type: string
+            description:
+              type: string
+      recommendation:
+        type: string
+        enum:
+          - approve
+          - review
+          - escalate
+          - block
+
+guardrails:
+  input:
+    - name: pii-redaction-check
+      description: Ensure SSNs and account numbers are masked before processing.
+      action: block
+  output:
+    - name: no-legal-advice
+      description: Block responses that contain definitive legal conclusions.
+      action: block
+    - name: confidence-disclaimer
+      description: Warn if output lacks confidence qualifiers.
+      action: warn
+  behavioral:
+    - Never state that a transaction is definitively legal or illegal.
+    - Always recommend human review for risk scores above 70.
+    - Do not disclose internal compliance thresholds to end users.
+  prohibited_actions:
+    - Approving transactions above $50,000 without escalation
+    - Modifying transaction records
+    - Sharing compliance rules with external parties
+
+governance:
+  data_classification: confidential
+  pii_handling: processes
+  pii_types:
+    - financial-account-numbers
+    - names
+    - addresses
+  compliance_frameworks:
+    - SOC2
+    - GDPR
+    - SOX
+    - AML
+  risk_level: high
+  authorized_use:
+    departments:
+      - compliance
+      - legal
+      - internal-audit
+    environments:
+      - staging
+      - production
+
+evaluation:
+  dataset: "./evals/compliance-test-cases.jsonl"
+  minimum_score: 0.92
+  assertions:
+    - input: "Transaction of $120,000 to unregistered entity in sanctioned region"
+      expected: "escalate"
+    - input: "Routine $500 domestic wire transfer"
+      expected: "approve"
+
+triggers:
+  - event: transaction.created
+    description: Run compliance check on every new transaction.
+    filter:
+      amount_gte: 10000
+  - schedule: "0 6 * * MON"
+    description: Weekly compliance summary report every Monday at 6 AM UTC.
+
+environments:
+  staging:
+    model:
+      id: claude-haiku
+      provider: anthropic
+
+extensions:
+  internal_dashboard:
+    widget: compliance-review-queue
+    priority: critical
+
+metadata:
+  owner: compliance-engineering
+  tags:
+    - compliance
+    - finance
+    - audit
+    - regulated
+  categories:
+    domain: finance
+    function: compliance
+    maturity: production
+  license: PROPRIETARY
+  author:
+    name: Compliance Engineering Team
+    email: compliance-eng@example.com
