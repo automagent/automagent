@@ -1,8 +1,8 @@
 # Agent Definition Specification v1
 
 **Status:** Draft
-**Schema URL:** `https://raw.githubusercontent.com/automagent-ai/automagent/main/packages/schema/src/v1.schema.json`
-**Compose Schema URL:** `https://raw.githubusercontent.com/automagent-ai/automagent/main/packages/schema/src/compose.schema.json`
+**Schema URL:** `https://raw.githubusercontent.com/automagent/automagent/main/packages/schema/src/v1.schema.json`
+**Compose Schema URL:** `https://raw.githubusercontent.com/automagent/automagent/main/packages/schema/src/compose.schema.json`
 
 ---
 
@@ -40,7 +40,7 @@ An agent definition captures what an agent is (model, instructions, tools), how 
 **Editor support:** Add this as the first line for autocomplete:
 
 ```yaml
-# yaml-language-server: $schema=https://raw.githubusercontent.com/automagent-ai/automagent/main/packages/schema/src/v1.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/automagent/automagent/main/packages/schema/src/v1.schema.json
 ```
 
 ---

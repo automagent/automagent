@@ -19,7 +19,7 @@
 
 ```yaml
 # The simplest possible agent definition — just 3 fields.
-# yaml-language-server: $schema=https://raw.githubusercontent.com/automagent-ai/automagent/main/packages/schema/src/v1.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/automagent/automagent/main/packages/schema/src/v1.schema.json
 name: my-agent
 description: Answers questions about our codebase
 model: claude-sonnet

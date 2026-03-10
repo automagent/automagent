@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/automagent-ai/automagent/main/packages/schema/src/compose.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/automagent/automagent/main/packages/schema/src/compose.schema.json
 kind: compose
 name: content-pipeline
 version: "0.1.0"

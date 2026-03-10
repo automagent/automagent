@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/automagent-ai/automagent/main/packages/schema/src/v1.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/automagent/automagent/main/packages/schema/src/v1.schema.json
 name: research-assistant
 version: "0.2.0"
 description: >

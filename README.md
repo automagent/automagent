@@ -195,7 +195,7 @@ automagent diff @myteam/my-agent              # Compare local vs. hub version
 Add this comment as the first line of your `agent.yaml` for schema validation and autocomplete in VS Code, JetBrains, and any editor with YAML language server support:
 
 ```yaml
-# yaml-language-server: $schema=https://raw.githubusercontent.com/automagent-ai/automagent/main/packages/schema/src/v1.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/automagent/automagent/main/packages/schema/src/v1.schema.json
 ```
 
 ## Documentation

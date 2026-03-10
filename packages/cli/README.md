@@ -90,7 +90,7 @@ Unmapped fields are preserved under `extensions.<framework>` in the output. A `#
 Agents are defined in YAML conforming to `@automagent/schema`:
 
 ```yaml
-# yaml-language-server: $schema=https://raw.githubusercontent.com/automagent-ai/automagent/main/packages/schema/src/v1.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/automagent/automagent/main/packages/schema/src/v1.schema.json
 name: my-agent
 description: A helpful research assistant
 model: claude-sonnet-4-20250514

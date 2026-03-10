@@ -1,6 +1,6 @@
 {
   "name": "automagent",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "CLI toolkit for the automagent agent definition standard",
   "type": "module",
   "bin": {
