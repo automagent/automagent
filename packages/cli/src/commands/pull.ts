@@ -7,23 +7,26 @@ import { getAuthHeaders } from '../utils/credentials.js';
 import { SCHEMA_HEADER, DEFAULT_HUB } from '../utils/constants.js';
 
 export function parseAgentRef(ref: string): { scope: string; name: string; version?: string } {
-  const versionSplit = ref.split(':');
-  const refPart = versionSplit[0];
-  const version = versionSplit[1];
-
-  const match = refPart.match(/^(@[^/]+)\/(.+)$/);
-  if (!match) {
-    throw new Error(`Invalid agent reference: "${ref}". Expected format: @scope/name or @scope/name:version`);
+  // Scoped: @scope/name, @scope/name:version, @scope/name@version
+  const scopedMatch = ref.match(/^(@[^/]+)\/([^@:]+)(?:[@:](.+))?$/);
+  if (scopedMatch) {
+    return { scope: scopedMatch[1], name: scopedMatch[2], version: scopedMatch[3] };
   }
 
-  return { scope: match[1], name: match[2], version };
+  // Unscoped: name, name:version, name@version → maps to _ scope (official/unscoped)
+  const unscopedMatch = ref.match(/^([a-zA-Z0-9][a-zA-Z0-9_-]*)(?:[@:](.+))?$/);
+  if (unscopedMatch) {
+    return { scope: '_', name: unscopedMatch[1], version: unscopedMatch[2] };
+  }
+
+  throw new Error(`Invalid agent reference: "${ref}". Expected format: @scope/name or name (with optional @version or :version)`);
 }
 
 export function pullCommand(program: Command): void {
   program
     .command('pull')
     .description('Pull agent definition from the hub')
-    .argument('<ref>', 'Agent reference (e.g. @acme/my-agent or @acme/my-agent:1.0.0)')
+    .argument('<ref>', 'Agent reference (e.g. @acme/my-agent:1.0.0, my-agent@0.1.0, or my-agent)')
     .option('-o, --output <path>', 'Output file path', './agent.yaml')
     .option('--hub-url <url>', 'Hub URL', DEFAULT_HUB)
     .option('--force', 'Overwrite existing file')
@@ -71,7 +74,7 @@ export function pullCommand(program: Command): void {
         const yamlContent = `${SCHEMA_HEADER}\n${stringify(body.definition, { lineWidth: 120 })}`;
 
         writeFileSync(outputPath, yamlContent, 'utf-8');
-        success(`Pulled ${ref}@${body.version} to ${opts.output}`);
+        success(`Pulled ${parsed.scope}/${parsed.name}@${body.version} to ${opts.output}`);
       } catch {
         error(`Failed to connect to hub at ${opts.hubUrl}`);
         info('Is the hub running? Start it with: docker compose up');
