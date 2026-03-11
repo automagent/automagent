@@ -11,7 +11,16 @@ describe('validate — agent definition', () => {
   // Valid definitions
   // -------------------------------------------------------------------------
 
-  it('accepts a minimal 3-field definition', () => {
+  it('accepts a minimal 2-field definition (name + description)', () => {
+    const result = validate({
+      name: 'my-agent',
+      description: 'Answers questions about our codebase',
+    });
+    expect(result.valid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  it('accepts a definition with model', () => {
     const result = validate({
       name: 'my-agent',
       description: 'Answers questions about our codebase',
@@ -327,18 +336,6 @@ describe('validate — agent definition', () => {
     expect(descError).toBeDefined();
   });
 
-  it('rejects missing model', () => {
-    const result = validate({
-      name: 'my-agent',
-      description: 'A helpful agent',
-    });
-    expect(result.valid).toBe(false);
-    const modelError = result.errors.find(
-      (e) => e.params?.missingProperty === 'model',
-    );
-    expect(modelError).toBeDefined();
-  });
-
   it('rejects name with uppercase letters', () => {
     const result = validate({
       name: 'MyAgent',
@@ -370,6 +367,36 @@ describe('validate — agent definition', () => {
     expect(result.valid).toBe(false);
   });
 
+  it('accepts an agent with a scope', () => {
+    const result = validate({
+      name: 'code-reviewer',
+      scope: 'acme',
+      description: 'A scoped agent',
+      model: 'claude-sonnet',
+    });
+    expect(result.valid).toBe(true);
+  });
+
+  it('rejects scope with uppercase letters', () => {
+    const result = validate({
+      name: 'my-agent',
+      scope: 'Acme',
+      description: 'Bad scope',
+      model: 'claude-sonnet',
+    });
+    expect(result.valid).toBe(false);
+  });
+
+  it('rejects scope with leading hyphen', () => {
+    const result = validate({
+      name: 'my-agent',
+      scope: '-acme',
+      description: 'Bad scope',
+      model: 'claude-sonnet',
+    });
+    expect(result.valid).toBe(false);
+  });
+
   it('rejects name with trailing hyphen', () => {
     const result = validate({
       name: 'my-agent-',
@@ -391,7 +418,7 @@ describe('validate — agent definition', () => {
   it('rejects an empty object', () => {
     const result = validate({});
     expect(result.valid).toBe(false);
-    expect(result.errors.length).toBeGreaterThanOrEqual(3);
+    expect(result.errors.length).toBeGreaterThanOrEqual(2);
   });
 });
 

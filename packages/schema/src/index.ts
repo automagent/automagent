@@ -255,16 +255,18 @@ export interface Metadata {
 /**
  * The full agent definition — the core type for agent.yaml files.
  *
- * Only `name`, `description`, and `model` are required.
+ * Only `name` and `description` are required.
  * All other fields are optional and support progressive disclosure.
  */
 export interface AgentDefinition {
   /** Machine-readable slug. Pattern: ^[a-z0-9]([a-z0-9-]*[a-z0-9])?$ maxLength: 128 */
   name: string;
+  /** Optional namespace scope (e.g., 'acme' in '@acme/my-agent'). Pattern: ^[a-z0-9]([a-z0-9-]*[a-z0-9])?$ maxLength: 128 */
+  scope?: string;
   /** Human-readable description of what the agent does. minLength: 1 */
   description: string;
-  /** Model identifier (string) or full model configuration (object) */
-  model: string | ModelConfig | ModelShorthand;
+  /** Model identifier (string) or full model configuration (object). Optional — runner decides if omitted. */
+  model?: string | ModelConfig | ModelShorthand;
   /** Schema version. Defaults to "v1". */
   apiVersion?: string;
   /** Definition type: "agent" or "team". Defaults to "agent". */

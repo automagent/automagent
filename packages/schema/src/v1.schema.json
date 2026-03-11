@@ -4,7 +4,7 @@
   "title": "Automagent Agent Definition",
   "description": "Schema for agent.yaml — the standard definition format for AI agents",
   "type": "object",
-  "required": ["name", "description", "model"],
+  "required": ["name", "description"],
   "additionalProperties": true,
   "properties": {
     "apiVersion": {
@@ -23,6 +23,12 @@
       "pattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?$",
       "maxLength": 128,
       "description": "Machine-readable slug. Lowercase alphanumeric and hyphens only. Must start and end with alphanumeric."
+    },
+    "scope": {
+      "type": "string",
+      "pattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?$",
+      "maxLength": 128,
+      "description": "Optional namespace scope for the agent (e.g., 'acme' in '@acme/my-agent'). Lowercase alphanumeric and hyphens only."
     },
     "version": {
       "type": "string",

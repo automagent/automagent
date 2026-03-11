@@ -171,6 +171,13 @@ export const ENTERPRISE = {
   },
 } as const;
 
+export const WITH_SCOPE = {
+  name: 'code-reviewer',
+  scope: 'acme',
+  description: 'Agent with a namespace scope',
+  model: 'claude-sonnet',
+} as const;
+
 export const FORWARD_COMPAT = {
   name: 'future-proof',
   description: 'Agent with unknown fields',
@@ -199,8 +206,10 @@ export const EMPTY_ARRAYS = {
 
 export const INVALID_MISSING_NAME = { description: 'No name', model: 'gpt-4' } as const;
 export const INVALID_MISSING_DESCRIPTION = { name: 'my-agent', model: 'gpt-4' } as const;
-export const INVALID_MISSING_MODEL = { name: 'my-agent', description: 'No model' } as const;
+export const NO_MODEL = { name: 'my-agent', description: 'Agent without model — runner decides' } as const;
 export const INVALID_EMPTY_OBJECT = {} as const;
+export const INVALID_BAD_SCOPE_UPPERCASE = { name: 'my-agent', scope: 'Acme', description: 'Bad scope', model: 'gpt-4' } as const;
+export const INVALID_BAD_SCOPE_LEADING_HYPHEN = { name: 'my-agent', scope: '-acme', description: 'Bad scope', model: 'gpt-4' } as const;
 export const INVALID_BAD_NAME_UPPERCASE = { name: 'MyAgent', description: 'Bad', model: 'gpt-4' } as const;
 export const INVALID_BAD_NAME_LEADING_HYPHEN = { name: '-bad', description: 'Bad', model: 'gpt-4' } as const;
 export const INVALID_BAD_NAME_TRAILING_HYPHEN = { name: 'bad-', description: 'Bad', model: 'gpt-4' } as const;
@@ -209,12 +218,12 @@ export const INVALID_NAME_TOO_LONG = { name: 'a'.repeat(129), description: 'Too 
 
 // Grouped for iteration
 export const VALID_FIXTURES = {
-  MINIMAL, MODEL_STRING, MODEL_OBJECT, INSTRUCTIONS_STRING, INSTRUCTIONS_OBJECT_SYSTEM,
-  INSTRUCTIONS_FILE_REF, WITH_TOOLS, WITH_MCP, ENTERPRISE, FORWARD_COMPAT, MAX_LENGTH_NAME, EMPTY_ARRAYS,
+  MINIMAL, NO_MODEL, MODEL_STRING, MODEL_OBJECT, INSTRUCTIONS_STRING, INSTRUCTIONS_OBJECT_SYSTEM,
+  INSTRUCTIONS_FILE_REF, WITH_TOOLS, WITH_MCP, ENTERPRISE, WITH_SCOPE, FORWARD_COMPAT, MAX_LENGTH_NAME, EMPTY_ARRAYS,
 } as const;
 
 export const INVALID_FIXTURES = {
-  INVALID_MISSING_NAME, INVALID_MISSING_DESCRIPTION, INVALID_MISSING_MODEL, INVALID_EMPTY_OBJECT,
+  INVALID_MISSING_NAME, INVALID_MISSING_DESCRIPTION, INVALID_EMPTY_OBJECT,
   INVALID_BAD_NAME_UPPERCASE, INVALID_BAD_NAME_LEADING_HYPHEN, INVALID_BAD_NAME_TRAILING_HYPHEN,
-  INVALID_EMPTY_DESCRIPTION, INVALID_NAME_TOO_LONG,
+  INVALID_EMPTY_DESCRIPTION, INVALID_NAME_TOO_LONG, INVALID_BAD_SCOPE_UPPERCASE, INVALID_BAD_SCOPE_LEADING_HYPHEN,
 } as const;
