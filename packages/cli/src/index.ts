@@ -16,7 +16,7 @@ const program = new Command();
 program
   .name('automagent')
   .description('The open standard for defining AI agents')
-  .version('0.1.0');
+  .version('0.2.0');
 
 initCommand(program);
 validateCommand(program);
