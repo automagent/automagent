@@ -1,12 +1,15 @@
 import { createInterface } from 'node:readline/promises';
-import { existsSync, writeFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { existsSync, writeFileSync, mkdirSync } from 'node:fs';
+import { resolve, dirname, join } from 'node:path';
 import type { Command } from 'commander';
 import { stringify } from 'yaml';
 import chalk from 'chalk';
 import { success, warn, error, info, heading } from '../utils/output.js';
 import { SCHEMA_HEADER } from '../utils/constants.js';
 import { NAME_PATTERN, NAME_MAX_LENGTH } from '@automagent/schema';
+import { exportClaudeCode } from '../exporters/claude-code.js';
+import { exportCursor } from '../exporters/cursor.js';
+import { exportCopilot } from '../exporters/copilot.js';
 
 const DEFAULT_MODEL = 'claude-sonnet-4-20250514';
 const DEFAULT_NAME = 'my-agent';
@@ -105,7 +108,8 @@ export function initCommand(program: Command): void {
     .option('--name <name>', 'Agent name')
     .option('--description <desc>', 'Agent description')
     .option('--model <model>', 'Model identifier')
-    .action(async (opts: { quick?: boolean; force?: boolean; name?: string; description?: string; model?: string }) => {
+    .option('--target <targets>', 'Also export to IDE targets after creation (claude-code,cursor,copilot)')
+    .action(async (opts: { quick?: boolean; force?: boolean; name?: string; description?: string; model?: string; target?: string }) => {
       const filePath = resolve(process.cwd(), 'agent.yaml');
 
       if (existsSync(filePath) && !opts.force) {
@@ -133,6 +137,50 @@ export function initCommand(program: Command): void {
       writeFileSync(filePath, content, 'utf-8');
 
       success(`Created ${chalk.bold('agent.yaml')}`);
+
+      // Export to targets if requested
+      if (opts.target) {
+        const targets = opts.target.split(',').map(t => t.trim());
+        const agentData = config as Record<string, unknown>;
+        const outputDir = dirname(filePath);
+
+        for (const target of targets) {
+          let files: Record<string, unknown>;
+          switch (target) {
+            case 'claude-code':
+              files = exportClaudeCode(agentData);
+              break;
+            case 'cursor':
+              files = exportCursor(agentData);
+              break;
+            case 'copilot':
+              files = exportCopilot(agentData);
+              break;
+            default:
+              warn(`Unknown target: ${target}`);
+              continue;
+          }
+
+          for (const [relativePath, content] of Object.entries(files)) {
+            const actualPath = target === 'claude-code' && relativePath === 'plugin.json'
+              ? join(outputDir, '.claude-plugin', 'plugin.json')
+              : join(outputDir, relativePath);
+
+            const dir = dirname(actualPath);
+            if (!existsSync(dir)) {
+              mkdirSync(dir, { recursive: true });
+            }
+
+            const fileContent = typeof content === 'string'
+              ? content
+              : JSON.stringify(content, null, 2) + '\n';
+
+            writeFileSync(actualPath, fileContent, 'utf-8');
+            info(`Exported ${relativePath}`);
+          }
+        }
+      }
+
       printNextSteps();
     });
 }
