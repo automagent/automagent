@@ -148,8 +148,8 @@ describe('importer output — schema contract', () => {
 // =============================================================================
 
 describe('structural parity', () => {
-  it('schema requires exactly name, description, model', () => {
-    expect(agentSchema.required).toEqual(['name', 'description', 'model']);
+  it('schema requires exactly name and description', () => {
+    expect(agentSchema.required).toEqual(['name', 'description']);
   });
 
   it('schema name pattern matches exported NAME_PATTERN', () => {

@@ -127,9 +127,14 @@ export function runCommand(program: Command): void {
       const def = data as AgentDefinition;
 
       // Determine model (flag overrides definition)
-      const normalized = normalizeModel(def.model);
+      if (!def.model && !opts.model) {
+        error('No model specified in agent.yaml. Use --model to provide one.');
+        process.exitCode = 1;
+        return;
+      }
+      const normalized = def.model ? normalizeModel(def.model) : opts.model!;
       const modelSource = opts.model ?? normalized;
-      const modelString = opts.model ?? resolveModelString(normalized);
+      const modelString = opts.model ?? resolveModelString(normalized as string | ModelConfig);
       const { provider, envVar } = detectProvider(modelSource);
 
       // Check API key
