@@ -1,6 +1,6 @@
 import type { Command } from 'commander';
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
-import { resolve, extname } from 'node:path';
+import { resolve, extname, basename, join, dirname } from 'node:path';
 import { stringify } from 'yaml';
 import { validate } from '@automagent/schema';
 import { parseYamlFile } from '../utils/yaml.js';
@@ -8,17 +8,32 @@ import { success, error, warn, info, heading } from '../utils/output.js';
 import { importCrewAI } from '../importers/crewai.js';
 import { importOpenAI } from '../importers/openai.js';
 import { importLangChain } from '../importers/langchain.js';
+import { importClaudeCode } from '../importers/claude-code.js';
+import { importCursor } from '../importers/cursor.js';
+import { importCopilot } from '../importers/copilot.js';
 import { SCHEMA_HEADER } from '../utils/constants.js';
 
-export type SupportedFormat = 'crewai' | 'openai' | 'langchain';
+export type SupportedFormat = 'crewai' | 'openai' | 'langchain' | 'claude-code' | 'cursor' | 'copilot';
 const TODO_COMMENT = '# TODO: Review';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-export function detectFormat(filePath: string, data: Record<string, unknown>): SupportedFormat | null {
+export function detectFormat(filePath: string, data?: Record<string, unknown>): SupportedFormat | null {
   const ext = extname(filePath).toLowerCase();
+  const base = basename(filePath);
+
+  // Filename-based detection for new IDE formats (check before requiring parsed data)
+  // Cursor: .cursorrules or .mdc files
+  if (base === '.cursorrules' || ext === '.mdc') return 'cursor';
+  // Copilot: copilot-instructions.md or .instructions.md files
+  if (base === 'copilot-instructions.md' || base.endsWith('.instructions.md')) return 'copilot';
+  // Claude Code: CLAUDE.md
+  if (base === 'CLAUDE.md') return 'claude-code';
+
+  // For legacy formats, we need parsed data
+  if (!data) return null;
 
   // CrewAI: YAML with role + goal + backstory (flat or agents-array wrapper)
   if (ext === '.yaml' || ext === '.yml') {
@@ -154,47 +169,94 @@ export function importCommand(program: Command): void {
         return;
       }
 
-      // Parse input
-      let data: Record<string, unknown>;
-      try {
-        data = parseInputFile(resolvedInput);
-      } catch (err) {
-        error(`Failed to parse input file: ${err instanceof Error ? err.message : String(err)}`);
-        process.exitCode = 1;
-        return;
-      }
-
       // Detect or validate format
       let format: SupportedFormat;
       if (options.format) {
-        const valid: SupportedFormat[] = ['crewai', 'openai', 'langchain'];
+        const valid: SupportedFormat[] = ['crewai', 'openai', 'langchain', 'claude-code', 'cursor', 'copilot'];
         if (!valid.includes(options.format as SupportedFormat)) {
           error(`Unknown format: ${options.format}`);
-          info('Supported formats: crewai, openai, langchain');
+          info('Supported formats: crewai, openai, langchain, claude-code, cursor, copilot');
           process.exitCode = 1;
           return;
         }
         format = options.format as SupportedFormat;
       } else {
-        const detected = detectFormat(resolvedInput, data);
+        // Try filename-based detection first (for text formats)
+        const detected = detectFormat(resolvedInput);
         if (!detected) {
-          error('Could not auto-detect source format from file content');
-          info('Supported formats:');
-          info('  crewai      - YAML with role + goal + backstory');
-          info('  openai      - JSON with instructions + model');
-          info('  langchain   - JSON with prompt/system_message + llm/agent_type');
-          info('Use --format <format> to specify explicitly');
-          process.exitCode = 1;
-          return;
+          // Try parsing as YAML/JSON for legacy formats
+          let data: Record<string, unknown>;
+          try {
+            data = parseInputFile(resolvedInput);
+          } catch (err) {
+            error(`Failed to parse input file: ${err instanceof Error ? err.message : String(err)}`);
+            error('Could not auto-detect source format');
+            info('Supported formats:');
+            info('  crewai      - YAML with role + goal + backstory');
+            info('  openai      - JSON with instructions + model');
+            info('  langchain   - JSON with prompt/system_message + llm/agent_type');
+            info('  claude-code - CLAUDE.md');
+            info('  cursor      - .cursorrules or .mdc files');
+            info('  copilot     - copilot-instructions.md or .instructions.md');
+            info('Use --format <format> to specify explicitly');
+            process.exitCode = 1;
+            return;
+          }
+          const detectedFromData = detectFormat(resolvedInput, data);
+          if (!detectedFromData) {
+            error('Could not auto-detect source format from file content');
+            info('Supported formats:');
+            info('  crewai      - YAML with role + goal + backstory');
+            info('  openai      - JSON with instructions + model');
+            info('  langchain   - JSON with prompt/system_message + llm/agent_type');
+            info('  claude-code - CLAUDE.md');
+            info('  cursor      - .cursorrules or .mdc files');
+            info('  copilot     - copilot-instructions.md or .instructions.md');
+            info('Use --format <format> to specify explicitly');
+            process.exitCode = 1;
+            return;
+          }
+          format = detectedFromData;
+          info(`Detected format: ${format}`);
+        } else {
+          format = detected;
+          info(`Detected format: ${format}`);
         }
-        format = detected;
-        info(`Detected format: ${format}`);
       }
 
       // Run the appropriate importer
       let agentData: Record<string, unknown>;
       switch (format) {
+        case 'cursor': {
+          const content = readFileSync(resolvedInput, 'utf-8');
+          const fileName = basename(resolvedInput);
+          agentData = importCursor({ content, fileName });
+          break;
+        }
+        case 'copilot': {
+          const content = readFileSync(resolvedInput, 'utf-8');
+          const fileName = basename(resolvedInput);
+          agentData = importCopilot({ content, fileName });
+          break;
+        }
+        case 'claude-code': {
+          const content = readFileSync(resolvedInput, 'utf-8');
+          const dir = dirname(resolvedInput);
+          let mcpJson: Record<string, Record<string, unknown>> | undefined;
+          const mcpPath = join(dir, '.mcp.json');
+          if (existsSync(mcpPath)) {
+            mcpJson = JSON.parse(readFileSync(mcpPath, 'utf-8'));
+          }
+          let settingsJson: Record<string, unknown> | undefined;
+          const settingsPath = join(dir, '.claude', 'settings.local.json');
+          if (existsSync(settingsPath)) {
+            settingsJson = JSON.parse(readFileSync(settingsPath, 'utf-8'));
+          }
+          agentData = importClaudeCode({ claudeMd: content, mcpJson, settingsJson });
+          break;
+        }
         case 'crewai': {
+          const data = parseInputFile(resolvedInput);
           let crewaiData = data;
           if (Array.isArray(data['agents']) && data['agents'].length > 0) {
             if (data['agents'].length > 1) {
@@ -205,12 +267,16 @@ export function importCommand(program: Command): void {
           agentData = importCrewAI(crewaiData as Parameters<typeof importCrewAI>[0]);
           break;
         }
-        case 'openai':
+        case 'openai': {
+          const data = parseInputFile(resolvedInput);
           agentData = importOpenAI(data as Parameters<typeof importOpenAI>[0]);
           break;
-        case 'langchain':
+        }
+        case 'langchain': {
+          const data = parseInputFile(resolvedInput);
           agentData = importLangChain(data as Parameters<typeof importLangChain>[0]);
           break;
+        }
       }
 
       // Serialize to YAML

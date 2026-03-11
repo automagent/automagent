@@ -1,0 +1,12 @@
+{
+  "name": "automagent",
+  "version": "0.1.0",
+  "description": "Define, validate, and sync AI agents using the automagent standard (agent.yaml)",
+  "author": {
+    "name": "Automagent"
+  },
+  "homepage": "https://automagent.dev",
+  "repository": "https://github.com/automagent/automagent",
+  "license": "Apache-2.0",
+  "keywords": ["agent", "yaml", "standard", "ai", "mcp"]
+}
