@@ -77,6 +77,10 @@ export function resolveInstructions(def: AgentDefinition, yamlDir?: string): str
   if (instr.system && typeof instr.system === 'object' && 'file' in instr.system) {
     const filePath = (instr.system as { file: string }).file;
     const resolvedPath = yamlDir ? resolve(yamlDir, filePath) : resolve(filePath);
+    const agentRoot = resolve(yamlDir ?? process.cwd());
+    if (!resolvedPath.startsWith(agentRoot + '/') && resolvedPath !== agentRoot) {
+      throw new Error(`Instruction file path must be within the agent directory: ${filePath}`);
+    }
     if (!existsSync(resolvedPath)) {
       throw new Error(`Instruction file not found: ${resolvedPath}`);
     }
@@ -108,6 +112,12 @@ export function runCommand(program: Command): void {
       const { data, error: parseError } = parseYamlFile(filePath);
       if (parseError) {
         error(parseError);
+        process.exitCode = 1;
+        return;
+      }
+
+      if (!data || typeof data !== 'object') {
+        error('agent.yaml is empty or not a valid YAML object.');
         process.exitCode = 1;
         return;
       }
@@ -154,14 +164,24 @@ export function runCommand(program: Command): void {
         ...(t.annotations ? { annotations: t.annotations } : {}),
       }));
 
+      const modelSettings = typeof normalized === 'object' && 'settings' in normalized
+        ? { temperature: normalized.settings?.temperature, max_tokens: normalized.settings?.max_tokens }
+        : undefined;
+
       const config: RunConfig = {
         name: def.name,
         model: modelString,
         provider,
         instructions: resolveInstructions(def, dirname(filePath)),
         tools,
+        settings: modelSettings,
       };
 
-      await runAgent(config);
+      try {
+        await runAgent(config);
+      } catch (err) {
+        error(err instanceof Error ? err.message : String(err));
+        process.exitCode = 1;
+      }
     });
 }

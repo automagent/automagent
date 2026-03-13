@@ -1,7 +1,7 @@
 import type { Command } from 'commander';
 import chalk from 'chalk';
 import { error, info, heading } from '../utils/output.js';
-import { getAuthHeaders } from '../utils/credentials.js';
+import { getAuthHeaders, warnIfInsecure } from '../utils/credentials.js';
 import { DEFAULT_HUB } from '../utils/constants.js';
 
 interface SearchResult {
@@ -23,6 +23,7 @@ export function searchCommand(program: Command): void {
     .option('--tags <tags>', 'Filter by tags (comma-separated)')
     .option('--hub-url <url>', 'Hub URL', DEFAULT_HUB)
     .action(async (query: string | undefined, opts: { tags?: string; hubUrl: string }) => {
+      warnIfInsecure(opts.hubUrl);
       heading('Searching hub');
 
       const params = new URLSearchParams();
@@ -33,7 +34,8 @@ export function searchCommand(program: Command): void {
 
       try {
         const res = await fetch(url, {
-          headers: { ...getAuthHeaders() },
+          headers: { ...getAuthHeaders(opts.hubUrl) },
+          signal: AbortSignal.timeout(30_000),
         });
 
         if (!res.ok) {
@@ -60,9 +62,12 @@ export function searchCommand(program: Command): void {
           console.log(`  ${agent.description}`);
           console.log();
         }
-      } catch {
-        error(`Failed to connect to hub at ${opts.hubUrl}`);
-        info('Is the hub running? Start it with: docker compose up');
+      } catch (err) {
+        const hint = opts.hubUrl === DEFAULT_HUB
+          ? 'Check your internet connection.'
+          : `Is the hub running at ${opts.hubUrl}?`;
+        error(`Failed to connect to hub: ${err instanceof Error ? err.message : String(err)}`);
+        info(hint);
         process.exitCode = 1;
       }
     });

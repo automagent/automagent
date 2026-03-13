@@ -1,18 +1,7 @@
-interface AgentInput {
-  name: string;
-  description: string;
-  model?: string | Record<string, unknown>;
-  version?: string;
-  instructions?: string | Record<string, unknown>;
-  mcp?: Array<Record<string, unknown>>;
-  metadata?: Record<string, unknown>;
-  guardrails?: Record<string, unknown>;
-  context?: Array<Record<string, unknown>>;
-  scope?: string;
-  [key: string]: unknown;
-}
+import type { AgentDefinition } from '@automagent/schema';
+import { renderInstructionsBody, renderGuardrailsLines } from '../utils/render-instructions.js';
 
-export function exportClaudeCode(data: AgentInput): Record<string, unknown> {
+export function exportClaudeCode(data: AgentDefinition): Record<string, unknown> {
   const files: Record<string, unknown> = {};
 
   // plugin.json
@@ -42,7 +31,7 @@ export function exportClaudeCode(data: AgentInput): Record<string, unknown> {
   return files;
 }
 
-function buildSkillMd(data: AgentInput): string {
+function buildSkillMd(data: AgentDefinition): string {
   const lines: string[] = [];
 
   // Frontmatter
@@ -53,54 +42,12 @@ function buildSkillMd(data: AgentInput): string {
   lines.push('');
 
   // Instructions body
-  const instructions = data.instructions;
-  if (typeof instructions === 'string') {
-    lines.push(instructions);
-  } else if (instructions && typeof instructions === 'object') {
-    const instr = instructions as Record<string, unknown>;
-    if (typeof instr.system === 'string') {
-      lines.push(instr.system);
-    } else if (instr.system && typeof instr.system === 'object') {
-      const sys = instr.system as Record<string, unknown>;
-      if (typeof sys.file === 'string') {
-        lines.push(`See: ${sys.file}`);
-      }
-    }
-
-    if (instr.persona && typeof instr.persona === 'object') {
-      const persona = instr.persona as Record<string, unknown>;
-      lines.push('');
-      if (persona.role) lines.push(`**Role:** ${persona.role}`);
-      if (persona.tone) lines.push(`**Tone:** ${persona.tone}`);
-      if (Array.isArray(persona.expertise)) {
-        lines.push(`**Expertise:** ${persona.expertise.join(', ')}`);
-      }
-    }
-  }
+  const body = renderInstructionsBody(data, { includeFileRefs: true, personaStyle: 'lines' });
+  if (body) lines.push(body);
 
   // Guardrails
-  const guardrails = data.guardrails as Record<string, unknown> | undefined;
-  if (guardrails) {
-    const behavioral = guardrails.behavioral as string[] | undefined;
-    const prohibited = guardrails.prohibited_actions as string[] | undefined;
-
-    if ((behavioral && behavioral.length > 0) || (prohibited && prohibited.length > 0)) {
-      lines.push('');
-      lines.push('## Rules');
-      if (behavioral) {
-        for (const rule of behavioral) {
-          lines.push(`- ${rule}`);
-        }
-      }
-      if (prohibited) {
-        lines.push('');
-        lines.push('## Prohibited Actions');
-        for (const action of prohibited) {
-          lines.push(`- NEVER: ${action}`);
-        }
-      }
-    }
-  }
+  const guardrailLines = renderGuardrailsLines(data, { includeProhibited: true });
+  lines.push(...guardrailLines);
 
   return lines.join('\n') + '\n';
 }

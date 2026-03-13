@@ -36,21 +36,34 @@ TypeScript types in `src/index.ts` (`AgentDefinition`, `ComposeDefinition`, `Mod
 
 The `fixtures` entry point (`@automagent/schema/fixtures`) provides shared test data used by both packages.
 
+Schema builds both CJS and ESM (`format: ['cjs', 'esm']` in tsup config) for broader consumer compatibility.
+
 ### CLI package (`packages/cli`)
 
-Each command is a separate module in `src/commands/` registered in `src/index.ts`. Commands: `init`, `validate`, `run`, `import`, `push`, `pull`, `search`, `diff`, `login`, `logout`, `whoami`.
+Each command is a separate module in `src/commands/` registered in `src/index.ts`. Commands: `init`, `validate`, `run`, `import`, `export`, `sync`, `push`, `pull`, `search`, `diff`, `login`, `logout`, `whoami`.
 
 Key subsystems:
 - **Validation pipeline** (`src/commands/validate.ts`): JSON schema check → model pinning warning → secret detection (API key patterns + high-entropy base64) → context file existence
 - **Provider abstraction** (`src/runtime/agent-runner.ts`): Auto-detects from model name (`claude-*` → Anthropic, `gpt-*` → OpenAI). SDKs are optional peer deps, dynamically imported
-- **Framework importers** (`src/importers/`): CrewAI, OpenAI Assistants, and LangChain → automagent YAML. Unmapped fields go to `extensions.<framework>`
+- **Framework importers** (`src/importers/`): CrewAI, OpenAI Assistants, LangChain, Claude Code, Cursor, and Copilot → automagent YAML. Unmapped fields go to `extensions.<framework>`
+- **IDE exporters** (`src/exporters/`): Convert `agent.yaml` → IDE-native config files. Targets: `claude-code` (CLAUDE.md), `cursor` (.cursor/rules), `copilot` (.github/copilot-instructions.md). Used by `export` (single target) and `sync` (all targets at once)
 - **Hub commands** (`push`, `pull`, `search`, `diff`): Talk to a hub API at `https://hub.automagent.dev` by default (configurable via `--hub-url`)
+- **Auth** (`login`, `logout`, `whoami`): GitHub OAuth via authorization code exchange. Credentials stored in `~/.automagent/credentials.json`
 
 ### CLI-Schema coupling
 - CLI imports `validate`, `AgentDefinition`, `ModelConfig`, `ToolDefinition`, `ValidationResult` from schema
+- `model` is optional on `AgentDefinition` — runner decides provider if omitted
 - `init` generates YAML that must pass schema validation
 - `import` produces output that must conform to the schema
 - `run` destructures AgentDefinition fields for provider dispatch
+
+### Test structure
+- Schema: `packages/schema/src/index.test.ts`
+- CLI: tests spread across `src/commands/__tests__/`, `src/importers/__tests__/`, `src/exporters/__tests__/`
+- `schema-contract.test.ts` verifies CLI stays compatible with schema exports
+
+### Build order
+Schema must build before CLI. The root build script enforces this: `npm run build -w @automagent/schema && npm run build -w automagent`.
 
 ## Work Verification
 Always verify your work before considering a task complete:
@@ -65,9 +78,6 @@ When bumping the version in package.json:
 - Run `npm version patch|minor|major` rather than editing package.json manually
 - Update CHANGELOG.md if it exists
 - Commit the version bump separately with message: `chore: bump version to x.x.x`
-
-### Build order
-Schema must build before CLI. The root build script enforces this: `npm run build -w packages/schema && npm run build -w packages/cli`.
 
 ## Conventions
 

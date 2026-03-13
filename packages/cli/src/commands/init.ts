@@ -5,7 +5,7 @@ import type { Command } from 'commander';
 import { stringify } from 'yaml';
 import chalk from 'chalk';
 import { success, warn, error, info, heading } from '../utils/output.js';
-import { SCHEMA_HEADER } from '../utils/constants.js';
+import { SCHEMA_HEADER, YAML_STRINGIFY_OPTIONS } from '../utils/constants.js';
 import { NAME_PATTERN, NAME_MAX_LENGTH } from '@automagent/schema';
 import { exportClaudeCode } from '../exporters/claude-code.js';
 import { exportCursor } from '../exporters/cursor.js';
@@ -29,7 +29,7 @@ export function validateName(name: string): boolean {
 }
 
 export function buildYaml(config: AgentConfig): string {
-  const yamlBody = stringify(config, { lineWidth: 0 });
+  const yamlBody = stringify(config, YAML_STRINGIFY_OPTIONS);
   return `${SCHEMA_HEADER}\n${yamlBody}`;
 }
 

@@ -11,7 +11,7 @@ import { importLangChain } from '../importers/langchain.js';
 import { importClaudeCode } from '../importers/claude-code.js';
 import { importCursor } from '../importers/cursor.js';
 import { importCopilot } from '../importers/copilot.js';
-import { SCHEMA_HEADER } from '../utils/constants.js';
+import { SCHEMA_HEADER, YAML_STRINGIFY_OPTIONS } from '../utils/constants.js';
 
 export type SupportedFormat = 'crewai' | 'openai' | 'langchain' | 'claude-code' | 'cursor' | 'copilot';
 const TODO_COMMENT = '# TODO: Review';
@@ -146,7 +146,7 @@ export function importCommand(program: Command): void {
     .description('Import agent definition from another framework')
     .argument('<path>', 'Path to the source configuration file')
     .option('-o, --output <path>', 'Output file path', './agent.yaml')
-    .option('-f, --format <format>', 'Force source format (crewai|openai|langchain)')
+    .option('-f, --format <format>', 'Force source format (crewai|openai|langchain|claude-code|cursor|copilot)')
     .option('--force', 'Overwrite existing output file', false)
     .action((inputPath: string, options: { output: string; format?: string; force: boolean }) => {
       const resolvedInput = resolve(inputPath);
@@ -287,7 +287,7 @@ export function importCommand(program: Command): void {
         }
       }
 
-      let yamlStr = stringify(cleanData, { lineWidth: 120 });
+      let yamlStr = stringify(cleanData, YAML_STRINGIFY_OPTIONS);
       yamlStr = addTodoComments(yamlStr, agentData);
 
       const output = `${SCHEMA_HEADER}\n${yamlStr}`;

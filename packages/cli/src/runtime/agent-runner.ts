@@ -4,12 +4,15 @@ import ora from 'ora';
 import { mockToolResponse } from './tool-mocker.js';
 import type { ToolCall } from './tool-mocker.js';
 
+const MAX_TOOL_ROUNDS = 20;
+
 export interface RunConfig {
   name: string;
   model: string;
   provider: 'anthropic' | 'openai';
   instructions: string;
   tools: Array<{ name: string; description?: string; inputSchema?: Record<string, unknown>; annotations?: Record<string, unknown> }>;
+  settings?: { temperature?: number; max_tokens?: number };
 }
 
 export async function runAgent(config: RunConfig): Promise<void> {
@@ -30,13 +33,9 @@ async function runAnthropic(config: RunConfig): Promise<void> {
     const mod = await import('@anthropic-ai/sdk');
     Anthropic = mod.default;
   } catch {
-    console.log(
-      chalk.red('Missing peer dependency: ') +
-        chalk.bold('@anthropic-ai/sdk') +
-        '\nInstall it with: ' +
-        chalk.cyan('npm install @anthropic-ai/sdk'),
+    throw new Error(
+      'Missing peer dependency: @anthropic-ai/sdk\nInstall it with: npm install @anthropic-ai/sdk',
     );
-    process.exit(1);
   }
 
   const client = new Anthropic();
@@ -67,7 +66,6 @@ async function runAnthropic(config: RunConfig): Promise<void> {
   const rl = createInterface({ input: process.stdin, output: process.stdout });
   rl.on('close', () => {
     console.log(chalk.dim('\nSession ended.'));
-    process.exit(0);
   });
 
   console.log(chalk.bold(`\nAgent: ${config.name}`));
@@ -89,14 +87,20 @@ async function runAnthropic(config: RunConfig): Promise<void> {
       try {
         let response = await client.messages.create({
           model: config.model,
-          max_tokens: 4096,
+          max_tokens: config.settings?.max_tokens ?? 4096,
           system: config.instructions,
           messages,
           ...(anthropicTools.length > 0 ? { tools: anthropicTools } : {}),
+          ...(config.settings?.temperature !== undefined ? { temperature: config.settings.temperature } : {}),
         });
 
         // Handle tool-use loop
+        let toolRounds = 0;
         while (response.stop_reason === 'tool_use') {
+          if (++toolRounds > MAX_TOOL_ROUNDS) {
+            console.log('\nTool-use loop limit reached (%d rounds). Stopping to prevent runaway API calls.', MAX_TOOL_ROUNDS);
+            break;
+          }
           spinner.text = 'Using tools...';
 
           const assistantContent = response.content as AnthropicContent[];
@@ -116,10 +120,11 @@ async function runAnthropic(config: RunConfig): Promise<void> {
 
           response = await client.messages.create({
             model: config.model,
-            max_tokens: 4096,
+            max_tokens: config.settings?.max_tokens ?? 4096,
             system: config.instructions,
             messages,
             ...(anthropicTools.length > 0 ? { tools: anthropicTools } : {}),
+            ...(config.settings?.temperature !== undefined ? { temperature: config.settings.temperature } : {}),
           });
         }
 
@@ -157,13 +162,9 @@ async function runOpenAI(config: RunConfig): Promise<void> {
     const mod = await import('openai');
     OpenAI = mod.default;
   } catch {
-    console.log(
-      chalk.red('Missing peer dependency: ') +
-        chalk.bold('openai') +
-        '\nInstall it with: ' +
-        chalk.cyan('npm install openai'),
+    throw new Error(
+      'Missing peer dependency: openai\nInstall it with: npm install openai',
     );
-    process.exit(1);
   }
 
   const client = new OpenAI();
@@ -188,7 +189,6 @@ async function runOpenAI(config: RunConfig): Promise<void> {
   const rl = createInterface({ input: process.stdin, output: process.stdout });
   rl.on('close', () => {
     console.log(chalk.dim('\nSession ended.'));
-    process.exit(0);
   });
 
   console.log(chalk.bold(`\nAgent: ${config.name}`));
@@ -212,12 +212,19 @@ async function runOpenAI(config: RunConfig): Promise<void> {
           model: config.model,
           messages,
           ...(openaiTools.length > 0 ? { tools: openaiTools } : {}),
+          ...(config.settings?.max_tokens !== undefined ? { max_tokens: config.settings.max_tokens } : {}),
+          ...(config.settings?.temperature !== undefined ? { temperature: config.settings.temperature } : {}),
         });
 
         let choice = response.choices[0];
 
         // Handle tool-call loop
+        let toolRounds = 0;
         while (choice?.finish_reason === 'tool_calls' && choice.message.tool_calls) {
+          if (++toolRounds > MAX_TOOL_ROUNDS) {
+            console.log('\nTool-use loop limit reached (%d rounds). Stopping to prevent runaway API calls.', MAX_TOOL_ROUNDS);
+            break;
+          }
           spinner.text = 'Using tools...';
 
           messages.push({
@@ -244,6 +251,8 @@ async function runOpenAI(config: RunConfig): Promise<void> {
             model: config.model,
             messages,
             ...(openaiTools.length > 0 ? { tools: openaiTools } : {}),
+            ...(config.settings?.max_tokens !== undefined ? { max_tokens: config.settings.max_tokens } : {}),
+            ...(config.settings?.temperature !== undefined ? { temperature: config.settings.temperature } : {}),
           });
 
           choice = response.choices[0];

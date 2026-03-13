@@ -41,6 +41,12 @@ export function exportCommand(program: Command): void {
         return;
       }
 
+      if (!data || typeof data !== 'object') {
+        error('agent.yaml is empty or not a valid YAML object.');
+        process.exitCode = 1;
+        return;
+      }
+
       // Validate (but allow export even if model is missing, since exporters handle it)
       const result = validate(data);
       if (!result.valid) {

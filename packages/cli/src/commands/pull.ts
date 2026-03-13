@@ -3,8 +3,8 @@ import { existsSync, writeFileSync } from 'node:fs';
 import type { Command } from 'commander';
 import { stringify } from 'yaml';
 import { success, error, info, heading } from '../utils/output.js';
-import { getAuthHeaders } from '../utils/credentials.js';
-import { SCHEMA_HEADER, DEFAULT_HUB } from '../utils/constants.js';
+import { getAuthHeaders, warnIfInsecure } from '../utils/credentials.js';
+import { SCHEMA_HEADER, DEFAULT_HUB, YAML_STRINGIFY_OPTIONS } from '../utils/constants.js';
 
 export function parseAgentRef(ref: string): { scope: string; name: string; version?: string } {
   // Scoped: @scope/name, @scope/name:version, @scope/name@version
@@ -33,6 +33,7 @@ export function pullCommand(program: Command): void {
     .action(async (ref: string, opts: { output: string; hubUrl: string; force?: boolean }) => {
       const outputPath = resolve(opts.output);
 
+      warnIfInsecure(opts.hubUrl);
       heading('Pulling from hub');
 
       if (existsSync(outputPath) && !opts.force) {
@@ -50,11 +51,12 @@ export function pullCommand(program: Command): void {
         return;
       }
 
-      const url = `${opts.hubUrl}/v1/agents/${encodeURIComponent(parsed.scope)}/${encodeURIComponent(parsed.name)}${parsed.version ? `?version=${parsed.version}` : ''}`;
+      const url = `${opts.hubUrl}/v1/agents/${encodeURIComponent(parsed.scope)}/${encodeURIComponent(parsed.name)}${parsed.version ? `?version=${encodeURIComponent(parsed.version)}` : ''}`;
 
       try {
         const res = await fetch(url, {
-          headers: { ...getAuthHeaders() },
+          headers: { ...getAuthHeaders(opts.hubUrl) },
+          signal: AbortSignal.timeout(30_000),
         });
 
         if (res.status === 404) {
@@ -71,13 +73,16 @@ export function pullCommand(program: Command): void {
         }
 
         const body = await res.json() as { definition: Record<string, unknown>; version: string };
-        const yamlContent = `${SCHEMA_HEADER}\n${stringify(body.definition, { lineWidth: 120 })}`;
+        const yamlContent = `${SCHEMA_HEADER}\n${stringify(body.definition, YAML_STRINGIFY_OPTIONS)}`;
 
         writeFileSync(outputPath, yamlContent, 'utf-8');
         success(`Pulled ${parsed.scope}/${parsed.name}@${body.version} to ${opts.output}`);
-      } catch {
-        error(`Failed to connect to hub at ${opts.hubUrl}`);
-        info('Is the hub running? Start it with: docker compose up');
+      } catch (err) {
+        const hint = opts.hubUrl === DEFAULT_HUB
+          ? 'Check your internet connection.'
+          : `Is the hub running at ${opts.hubUrl}?`;
+        error(`Failed to connect to hub: ${err instanceof Error ? err.message : String(err)}`);
+        info(hint);
         process.exitCode = 1;
       }
     });

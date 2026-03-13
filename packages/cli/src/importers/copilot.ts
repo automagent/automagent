@@ -1,5 +1,6 @@
 import { slugify } from '../utils/slugify.js';
 import { DEFAULT_IMPORT_MODEL } from '../utils/constants.js';
+import { parseFrontmatter } from '../utils/frontmatter.js';
 
 export interface CopilotInput {
   content: string;
@@ -39,26 +40,4 @@ export function importCopilot(data: CopilotInput): Record<string, unknown> {
   }
 
   return result;
-}
-
-function parseFrontmatter(content: string): { frontmatter: Record<string, unknown>; body: string } {
-  const match = content.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
-  if (!match) {
-    return { frontmatter: {}, body: content };
-  }
-
-  const frontmatter: Record<string, unknown> = {};
-  const lines = match[1].split('\n');
-  for (const line of lines) {
-    const colonIdx = line.indexOf(':');
-    if (colonIdx === -1) continue;
-    const key = line.slice(0, colonIdx).trim();
-    let value: unknown = line.slice(colonIdx + 1).trim();
-    if (typeof value === 'string' && value.startsWith('"') && value.endsWith('"')) {
-      value = value.slice(1, -1);
-    }
-    if (key) frontmatter[key] = value;
-  }
-
-  return { frontmatter, body: match[2] };
 }

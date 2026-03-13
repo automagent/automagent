@@ -88,8 +88,8 @@ describe('looksLikeSecret', () => {
     expect(looksLikeSecret('')).toBe(false);
   });
 
-  it('does not detect a secret embedded in a longer sentence', () => {
-    expect(looksLikeSecret('Use token sk-proj-abc123def456 for auth')).toBe(false);
+  it('detects a secret embedded in a longer sentence', () => {
+    expect(looksLikeSecret('Use token sk-proj-abc123def456 for auth')).toBe(true);
   });
 
   it('does not detect uppercase SK- prefix (case sensitive)', () => {
@@ -106,6 +106,60 @@ describe('looksLikeSecret', () => {
 
   it('detects a realistic AWS access key starting with AKIA', () => {
     expect(looksLikeSecret('AKIAIOSFODNN7EXAMPLE')).toBe(true);
+  });
+
+  // -- New prefix coverage (GitHub, Slack, Anthropic) --
+
+  it('detects GitHub personal access token (ghp_)', () => {
+    expect(looksLikeSecret('ghp_ABCdef123456789012345678901234567890')).toBe(true);
+  });
+
+  it('detects GitHub OAuth token (gho_)', () => {
+    expect(looksLikeSecret('gho_ABCdef1234567890')).toBe(true);
+  });
+
+  it('detects GitHub server-to-server token (ghs_)', () => {
+    expect(looksLikeSecret('ghs_ABCdef1234567890')).toBe(true);
+  });
+
+  it('detects GitHub user-to-server token (ghu_)', () => {
+    expect(looksLikeSecret('ghu_ABCdef1234567890')).toBe(true);
+  });
+
+  it('detects Slack bot token (xoxb-)', () => {
+    expect(looksLikeSecret('xoxb-123-456-abcdef')).toBe(true);
+  });
+
+  it('detects Slack user token (xoxp-)', () => {
+    expect(looksLikeSecret('xoxp-123-456-abcdef')).toBe(true);
+  });
+
+  it('detects Anthropic API key (sk-ant-)', () => {
+    expect(looksLikeSecret('sk-ant-api03-abcdef1234567890')).toBe(true);
+  });
+
+  // -- Embedded secret detection --
+
+  it('detects embedded secret with surrounding text', () => {
+    expect(looksLikeSecret('Use token sk-proj-abc123def456ghi789 for auth')).toBe(true);
+  });
+
+  // -- URL and file path exclusions for high-entropy heuristic --
+
+  it('does not flag a URL as a secret', () => {
+    expect(looksLikeSecret('https://tools.acme.com/Contracts/MCP/v2/EndpointForProcessing123')).toBe(false);
+  });
+
+  it('does not flag a file path as a secret', () => {
+    expect(looksLikeSecret('/usr/local/lib/SomeVeryLongPathWithMixedCase123/config')).toBe(false);
+  });
+
+  it('does not flag a relative file path as a secret', () => {
+    expect(looksLikeSecret('./some/VeryLongPathWithMixedCase123AndMoreCharacters/config')).toBe(false);
+  });
+
+  it('does not flag a parent-relative file path as a secret', () => {
+    expect(looksLikeSecret('../some/VeryLongPathWithMixedCase123AndMoreChars/config')).toBe(false);
   });
 });
 

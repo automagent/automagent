@@ -26,6 +26,11 @@ jobs:
 
       - run: npm test
 
+      - name: Lint
+        run: npm run lint
+        # TODO: remove continue-on-error once type errors are fixed
+        continue-on-error: true
+
       - name: Publish @automagent/schema
         run: npm publish --workspace=packages/schema --provenance --access public || [[ "$(npm view @automagent/schema version 2>/dev/null)" == "$(node -p 'require("./packages/schema/package.json").version')" ]]
 

@@ -28,21 +28,60 @@ export const UNPINNED_MODEL_PATTERNS: ReadonlySet<string> = new Set([
 /**
  * Prefixes that indicate a string is likely an API key or secret.
  */
-const SECRET_PREFIXES = ['sk-', 'key-', 'AKIA'] as const;
+const SECRET_PREFIXES = [
+  'sk-',
+  'sk-ant-',
+  'key-',
+  'AKIA',
+  'ghp_',
+  'gho_',
+  'ghs_',
+  'ghu_',
+  'xoxb-',
+  'xoxp-',
+] as const;
+
+/**
+ * Returns true if the value looks like a URL or file path, which should be
+ * excluded from the high-entropy heuristic to avoid false positives.
+ */
+function looksLikeUrlOrPath(value: string): boolean {
+  // URLs: contains "://" or starts with http/https
+  if (value.includes('://') || /^https?/i.test(value)) {
+    return true;
+  }
+  // File paths: starts with /, ./, or ../ or contains OS path separators
+  if (/^\.{0,2}\//.test(value)) {
+    return true;
+  }
+  return false;
+}
 
 /**
  * Checks whether a string looks like a high-entropy secret (base64-like
- * with mixed case and digits, longer than 30 characters).
+ * with mixed case and digits, longer than 30 characters), or contains a
+ * token that starts with a known secret prefix.
  */
 export function looksLikeSecret(value: string): boolean {
-  for (const prefix of SECRET_PREFIXES) {
-    if (value.startsWith(prefix)) {
-      return true;
+  // Split on whitespace and check each token for known secret prefixes.
+  // This catches secrets embedded in longer sentences like
+  // "Use token sk-proj-abc123 for auth".
+  const tokens = value.split(/\s+/);
+  for (const token of tokens) {
+    for (const prefix of SECRET_PREFIXES) {
+      if (token.startsWith(prefix)) {
+        return true;
+      }
     }
   }
 
   // Check for base64-like high-entropy strings > 30 chars
   if (value.length > 30) {
+    // Exclude URLs and file paths which commonly have mixed case + digits
+    if (looksLikeUrlOrPath(value)) {
+      return false;
+    }
+
     const hasUpper = /[A-Z]/.test(value);
     const hasLower = /[a-z]/.test(value);
     const hasDigit = /[0-9]/.test(value);

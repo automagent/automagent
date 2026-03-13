@@ -4,8 +4,8 @@ import { stringify } from 'yaml';
 import chalk from 'chalk';
 import { parseYamlFile } from '../utils/yaml.js';
 import { error, info, heading } from '../utils/output.js';
-import { getAuthHeaders } from '../utils/credentials.js';
-import { DEFAULT_HUB } from '../utils/constants.js';
+import { getAuthHeaders, warnIfInsecure } from '../utils/credentials.js';
+import { DEFAULT_HUB, YAML_STRINGIFY_OPTIONS } from '../utils/constants.js';
 
 function diffLines(localLines: string[], remoteLines: string[]): string[] {
   const output: string[] = [];
@@ -54,6 +54,7 @@ export function diffCommand(program: Command): void {
     .action(async (path: string, opts: { hubUrl: string; scope?: string; version?: string }) => {
       const filePath = resolve(path);
 
+      warnIfInsecure(opts.hubUrl);
       heading('Comparing with hub');
 
       const parsed = parseYamlFile(filePath);
@@ -78,13 +79,14 @@ export function diffCommand(program: Command): void {
         return;
       }
 
-      const url = `${opts.hubUrl}/v1/agents/${encodeURIComponent(scope)}/${encodeURIComponent(name)}${opts.version ? `?version=${opts.version}` : ''}`;
+      const url = `${opts.hubUrl}/v1/agents/${encodeURIComponent(scope)}/${encodeURIComponent(name)}${opts.version ? `?version=${encodeURIComponent(opts.version)}` : ''}`;
 
       let remoteDef: Record<string, unknown>;
       let remoteVersion: string;
       try {
         const res = await fetch(url, {
-          headers: { ...getAuthHeaders() },
+          headers: { ...getAuthHeaders(opts.hubUrl) },
+          signal: AbortSignal.timeout(30_000),
         });
 
         if (res.status === 404) {
@@ -101,14 +103,17 @@ export function diffCommand(program: Command): void {
         const body = await res.json() as { definition: Record<string, unknown>; version: string };
         remoteDef = body.definition;
         remoteVersion = body.version;
-      } catch {
-        error(`Failed to connect to hub at ${opts.hubUrl}`);
-        info('Is the hub running? Start it with: docker compose up');
+      } catch (err) {
+        const hint = opts.hubUrl === DEFAULT_HUB
+          ? 'Check your internet connection.'
+          : `Is the hub running at ${opts.hubUrl}?`;
+        error(`Failed to connect to hub: ${err instanceof Error ? err.message : String(err)}`);
+        info(hint);
         process.exitCode = 1;
         return;
       }
 
-      const yamlOpts = { lineWidth: 120, sortMapEntries: true };
+      const yamlOpts = { ...YAML_STRINGIFY_OPTIONS, sortMapEntries: true };
       const localYaml = stringify(localDef, yamlOpts).trimEnd();
       const remoteYaml = stringify(remoteDef, yamlOpts).trimEnd();
 

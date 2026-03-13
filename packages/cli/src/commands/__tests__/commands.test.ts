@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { execSync } from 'node:child_process';
+import { execSync, spawnSync } from 'node:child_process';
 import { mkdtempSync, writeFileSync, readFileSync, rmSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -13,21 +13,16 @@ import { mockToolResponse } from '../../runtime/tool-mocker.js';
 const CLI_PATH = join(import.meta.dirname, '..', '..', '..', 'dist', 'index.js');
 
 function runCli(args: string, cwd: string): { stdout: string; exitCode: number } {
-  try {
-    const stdout = execSync(`node ${CLI_PATH} ${args}`, {
-      cwd,
-      encoding: 'utf-8',
-      env: { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1' },
-      timeout: 10_000,
-    });
-    return { stdout, exitCode: 0 };
-  } catch (err) {
-    const e = err as { stdout?: string; stderr?: string; status?: number };
-    return {
-      stdout: (e.stdout ?? '') + (e.stderr ?? ''),
-      exitCode: e.status ?? 1,
-    };
-  }
+  const result = spawnSync('node', [CLI_PATH, ...args.split(/\s+/)], {
+    cwd,
+    encoding: 'utf-8',
+    env: { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1' },
+    timeout: 10_000,
+  });
+  return {
+    stdout: (result.stdout ?? '') + (result.stderr ?? ''),
+    exitCode: result.status ?? 1,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -125,9 +120,9 @@ describe('CrewAI importer', () => {
     expect(result['model']).toBe('gpt-4-turbo');
   });
 
-  it('defaults model to gpt-4 when llm is not specified', () => {
+  it('defaults model to gpt-4o-2024-08-06 when llm is not specified', () => {
     const result = importCrewAI({ role: 'r', goal: 'g', backstory: 'b' });
-    expect(result['model']).toBe('gpt-4');
+    expect(result['model']).toBe('gpt-4o-2024-08-06');
   });
 
   it('converts string tools to objects with name', () => {
@@ -182,9 +177,9 @@ describe('OpenAI importer', () => {
     expect(result['instructions']).toBe('Do stuff');
   });
 
-  it('defaults model to gpt-4 when not provided', () => {
+  it('defaults model to gpt-4o-2024-08-06 when not provided', () => {
     const result = importOpenAI({ name: 'bot' });
-    expect(result['model']).toBe('gpt-4');
+    expect(result['model']).toBe('gpt-4o-2024-08-06');
   });
 
   it('converts function tools to automagent tools format', () => {
@@ -328,9 +323,9 @@ describe('LangChain importer', () => {
     expect(result['model']).toBe('claude-sonnet-4-20250514');
   });
 
-  it('defaults model to gpt-4 when neither llm nor model present', () => {
+  it('defaults model to gpt-4o-2024-08-06 when neither llm nor model present', () => {
     const result = importLangChain({ system_message: 'x' });
-    expect(result['model']).toBe('gpt-4');
+    expect(result['model']).toBe('gpt-4o-2024-08-06');
   });
 
   it('converts string tools to objects with name', () => {

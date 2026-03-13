@@ -1,15 +1,7 @@
-interface AgentInput {
-  name: string;
-  description: string;
-  model?: string | Record<string, unknown>;
-  instructions?: string | Record<string, unknown>;
-  context?: Array<Record<string, unknown>>;
-  guardrails?: Record<string, unknown>;
-  scope?: string;
-  [key: string]: unknown;
-}
+import type { AgentDefinition } from '@automagent/schema';
+import { renderInstructionsBody, renderGuardrailsLines } from '../utils/render-instructions.js';
 
-export function exportCursor(data: AgentInput): Record<string, string> {
+export function exportCursor(data: AgentDefinition): Record<string, string> {
   const files: Record<string, string> = {};
 
   // Collect file globs from context
@@ -36,45 +28,14 @@ export function exportCursor(data: AgentInput): Record<string, string> {
   lines.push('---');
   lines.push('');
 
-  // Body: instructions
-  lines.push(resolveInstructionsBody(data.instructions));
+  // Body: instructions (cursor uses paragraph style)
+  const body = renderInstructionsBody(data, { personaStyle: 'paragraphs' });
+  if (body) lines.push(body);
 
-  // Guardrails
-  const guardrails = data.guardrails as Record<string, unknown> | undefined;
-  if (guardrails) {
-    const behavioral = guardrails.behavioral as string[] | undefined;
-    if (behavioral && behavioral.length > 0) {
-      lines.push('');
-      lines.push('## Rules');
-      for (const rule of behavioral) {
-        lines.push(`- ${rule}`);
-      }
-    }
-  }
+  // Guardrails (cursor only renders behavioral, not prohibited_actions)
+  const guardrailLines = renderGuardrailsLines(data, { includeProhibited: false });
+  lines.push(...guardrailLines);
 
   files[`.cursor/rules/${data.name}.mdc`] = lines.join('\n') + '\n';
   return files;
-}
-
-function resolveInstructionsBody(instructions: string | Record<string, unknown> | undefined): string {
-  if (!instructions) return '';
-  if (typeof instructions === 'string') return instructions;
-
-  const parts: string[] = [];
-  const instr = instructions as Record<string, unknown>;
-
-  if (typeof instr.system === 'string') {
-    parts.push(instr.system);
-  }
-
-  if (instr.persona && typeof instr.persona === 'object') {
-    const persona = instr.persona as Record<string, unknown>;
-    if (persona.role) parts.push(`**Role:** ${persona.role}`);
-    if (persona.tone) parts.push(`**Tone:** ${persona.tone}`);
-    if (Array.isArray(persona.expertise)) {
-      parts.push(`**Expertise:** ${persona.expertise.join(', ')}`);
-    }
-  }
-
-  return parts.join('\n\n');
 }

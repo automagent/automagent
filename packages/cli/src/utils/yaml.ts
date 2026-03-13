@@ -18,7 +18,10 @@ export function parseYamlFile(filePath: string): ParseResult {
 
 export function parseYamlString(raw: string): ParseResult {
   try {
-    const data = parse(raw);
+    const data = parse(raw, { maxAliasCount: 100 });
+    if (data !== null && typeof data !== 'object') {
+      return { data: null, error: 'YAML content is not an object', line: null };
+    }
     return { data, error: null, line: null };
   } catch (err) {
     if (err instanceof YAMLParseError) {

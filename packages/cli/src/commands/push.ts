@@ -4,7 +4,7 @@ import { validate } from '@automagent/schema';
 import { parseYamlFile } from '../utils/yaml.js';
 import chalk from 'chalk';
 import { success, error, info, heading } from '../utils/output.js';
-import { getAuthHeaders, loadCredentials } from '../utils/credentials.js';
+import { getAuthHeaders, loadCredentials, warnIfInsecure } from '../utils/credentials.js';
 import { DEFAULT_HUB } from '../utils/constants.js';
 
 export function pushCommand(program: Command): void {
@@ -13,15 +13,22 @@ export function pushCommand(program: Command): void {
     .description('Push agent definition to the hub')
     .argument('[path]', 'Path to agent.yaml', './agent.yaml')
     .option('--hub-url <url>', 'Hub URL', DEFAULT_HUB)
-    .option('--scope <scope>', 'Agent scope (e.g. @acme)')
+    .option('--scope <scope>', 'Agent scope (default: @local)')
     .action(async (path: string, opts: { hubUrl: string; scope?: string }) => {
       const filePath = resolve(path);
 
+      warnIfInsecure(opts.hubUrl);
       heading('Pushing to hub');
 
       const { data, error: parseError } = parseYamlFile(filePath);
       if (parseError) {
         error(parseError);
+        process.exitCode = 1;
+        return;
+      }
+
+      if (!data || typeof data !== 'object') {
+        error('agent.yaml is empty or not a valid YAML object.');
         process.exitCode = 1;
         return;
       }
@@ -55,9 +62,10 @@ export function pushCommand(program: Command): void {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            ...getAuthHeaders(),
+            ...getAuthHeaders(opts.hubUrl),
           },
           body: JSON.stringify({ version, definition: def, tags }),
+          signal: AbortSignal.timeout(30_000),
         });
 
         if (!res.ok) {
@@ -68,9 +76,12 @@ export function pushCommand(program: Command): void {
         }
 
         success(`Pushed ${scope}/${name}@${version} to ${opts.hubUrl}`);
-      } catch {
-        error(`Failed to connect to hub at ${opts.hubUrl}`);
-        info('Is the hub running? Start it with: docker compose up');
+      } catch (err) {
+        const hint = opts.hubUrl === DEFAULT_HUB
+          ? 'Check your internet connection.'
+          : `Is the hub running at ${opts.hubUrl}?`;
+        error(`Failed to connect to hub: ${err instanceof Error ? err.message : String(err)}`);
+        info(hint);
         process.exitCode = 1;
       }
     });

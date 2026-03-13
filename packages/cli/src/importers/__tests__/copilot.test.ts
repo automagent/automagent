@@ -10,7 +10,7 @@ describe('importCopilot', () => {
 
     expect(result.name).toBe('imported-agent');
     expect(result.instructions).toContain('Use TypeScript strict mode');
-    expect(result.model).toBe('gpt-4');
+    expect(result.model).toBe('gpt-4o-2024-08-06');
   });
 
   it('imports path-specific instructions with applyTo', () => {

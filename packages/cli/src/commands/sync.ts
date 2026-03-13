@@ -33,6 +33,12 @@ export function syncCommand(program: Command): void {
         return;
       }
 
+      if (!data || typeof data !== 'object') {
+        error('agent.yaml is empty or not a valid YAML object.');
+        process.exitCode = 1;
+        return;
+      }
+
       // Validate
       const result = validate(data);
       if (!result.valid) {
@@ -73,6 +79,7 @@ export function syncCommand(program: Command): void {
             break;
           default:
             error(`Unknown target: ${target}`);
+            process.exitCode = 1;
             continue;
         }
         Object.assign(allFiles, files);
