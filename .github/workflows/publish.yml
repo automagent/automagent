@@ -27,7 +27,7 @@ jobs:
       - run: npm test
 
       - name: Publish @automagent/schema
-        run: npm publish --workspace=packages/schema --provenance --access public
+        run: npm publish --workspace=packages/schema --provenance --access public || [[ "$(npm view @automagent/schema version 2>/dev/null)" == "$(node -p 'require("./packages/schema/package.json").version')" ]]
 
       - name: Publish automagent CLI
-        run: npm publish --workspace=packages/cli --provenance --access public
+        run: npm publish --workspace=packages/cli --provenance --access public || [[ "$(npm view automagent version 2>/dev/null)" == "$(node -p 'require("./packages/cli/package.json").version')" ]]
