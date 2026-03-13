@@ -52,6 +52,20 @@ Key subsystems:
 - `import` produces output that must conform to the schema
 - `run` destructures AgentDefinition fields for provider dispatch
 
+## Work Verification
+Always verify your work before considering a task complete:
+- Run tests after making changes (`npm test` or equivalent)
+- Check for linting errors (`npm run lint`)
+- Confirm the output matches the original requirement
+- If a command fails, fix it before moving on
+
+## Version Bumping
+When bumping the version in package.json:
+- Follow semver: patch (x.x.+1) for fixes, minor (x.+1.0) for new features, major (+1.0.0) for breaking changes
+- Run `npm version patch|minor|major` rather than editing package.json manually
+- Update CHANGELOG.md if it exists
+- Commit the version bump separately with message: `chore: bump version to x.x.x`
+
 ### Build order
 Schema must build before CLI. The root build script enforces this: `npm run build -w packages/schema && npm run build -w packages/cli`.
 
