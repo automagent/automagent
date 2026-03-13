@@ -1,5 +1,9 @@
+import { createRequire } from 'node:module';
 import { Command } from 'commander';
 import { initCommand } from './commands/init.js';
+
+const require = createRequire(import.meta.url);
+const { version } = require('../package.json') as { version: string };
 import { validateCommand } from './commands/validate.js';
 import { runCommand } from './commands/run.js';
 import { importCommand } from './commands/import.js';
@@ -16,7 +20,7 @@ const program = new Command();
 program
   .name('automagent')
   .description('The open standard for defining AI agents')
-  .version('0.2.0');
+  .version(version);
 
 initCommand(program);
 validateCommand(program);
