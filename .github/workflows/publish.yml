@@ -5,13 +5,13 @@ on:
     tags:
       - "v*"
 
-permissions:
-  contents: read
-  id-token: write
-
 jobs:
   publish:
     runs-on: ubuntu-latest
+    environment: npm
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v4
 
@@ -27,11 +27,7 @@ jobs:
       - run: npm test
 
       - name: Publish @automagent/schema
-        run: npm publish --workspace=packages/schema --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --workspace=packages/schema --provenance --access public
 
       - name: Publish automagent CLI
-        run: npm publish --workspace=packages/cli --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --workspace=packages/cli --provenance --access public
