@@ -23,12 +23,43 @@ export function registerLogin(program: Command): void {
             return;
           }
 
-          const token = url.searchParams.get('token');
-          const username = url.searchParams.get('username');
+          const code = url.searchParams.get('code');
 
-          if (!token || !username) {
+          if (!code) {
             res.writeHead(400);
-            res.end('Missing token or username');
+            res.end('Missing authorization code');
+            return;
+          }
+
+          let token: string;
+          let username: string;
+          try {
+            const tokenRes = await fetch(`${hubUrl}/auth/token`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ code }),
+            });
+            if (!tokenRes.ok) {
+              const err = await tokenRes.json() as { error?: string };
+              throw new Error(err.error ?? 'Token exchange failed');
+            }
+            const data = await tokenRes.json() as { token: string; username: string };
+            token = data.token;
+            username = data.username;
+          } catch (err) {
+            res.writeHead(500, { 'Content-Type': 'text/html' });
+            res.end(`
+              <html>
+                <body style="font-family: system-ui; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #0a0a0a; color: #f0f0f0;">
+                  <div style="text-align: center;">
+                    <h1 style="color: #ef4444;">Login failed</h1>
+                    <p>${err instanceof Error ? err.message : 'Unknown error'}</p>
+                  </div>
+                </body>
+              </html>
+            `);
+            console.log(chalk.red(`\nLogin failed: ${err instanceof Error ? err.message : err}`));
+            setTimeout(() => { server.close(); process.exit(1); }, 500);
             return;
           }
 
