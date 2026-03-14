@@ -105,6 +105,10 @@
     "Workflow": {
       "type": "object",
       "additionalProperties": true,
+      "anyOf": [
+        { "required": ["type"] },
+        { "required": ["steps"] }
+      ],
       "properties": {
         "type": {
           "type": "string",

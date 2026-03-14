@@ -1,3 +1,4 @@
+import chalk from 'chalk';
 import { slugify } from '../utils/slugify.js';
 import { DEFAULT_IMPORT_MODEL } from '../utils/constants.js';
 
@@ -7,6 +8,7 @@ export interface CrewAIAgent {
   backstory: string;
   llm?: string;
   tools?: Array<string | { name: string; [key: string]: unknown }>;
+  tasks?: Array<Record<string, unknown>>;
   verbose?: boolean;
   allow_delegation?: boolean;
   [key: string]: unknown;
@@ -31,6 +33,7 @@ export function importCrewAI(data: CrewAIAgent): Record<string, unknown> {
     const mapped = MODEL_MAP[data.llm];
     if (mapped) {
       result['model'] = mapped;
+      console.warn(chalk.yellow(`  \u26A0 Model upgraded: ${data.llm} \u2192 ${mapped}`));
     } else if (data.llm.startsWith('gpt-') || data.llm.startsWith('claude-') || data.llm.startsWith('o1') || data.llm.startsWith('o3')) {
       result['model'] = data.llm;
     } else {
@@ -52,12 +55,17 @@ export function importCrewAI(data: CrewAIAgent): Record<string, unknown> {
   }
 
   // Collect unmapped fields into extensions.crewai
-  const knownKeys = new Set(['role', 'goal', 'backstory', 'llm', 'tools']);
+  const knownKeys = new Set(['role', 'goal', 'backstory', 'llm', 'tools', 'tasks']);
   const unmapped: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(data)) {
     if (!knownKeys.has(key)) {
       unmapped[key] = value;
     }
+  }
+
+  // Preserve tasks in extensions.crewai.tasks
+  if (data.tasks && data.tasks.length > 0) {
+    unmapped['tasks'] = data.tasks;
   }
 
   if (Object.keys(unmapped).length > 0) {

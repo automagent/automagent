@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mkdtempSync, writeFileSync, readFileSync, rmSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -149,6 +149,50 @@ describe('CrewAI importer', () => {
     const result = importCrewAI({ role: 'r', goal: 'g', backstory: 'b' });
     expect(result['extensions']).toBeUndefined();
   });
+
+  it('maps tasks to extensions.crewai.tasks', () => {
+    const tasks = [
+      { description: 'Research topic', expected_output: 'Summary report' },
+      { description: 'Write article', expected_output: 'Published article' },
+    ];
+    const result = importCrewAI({
+      role: 'writer',
+      goal: 'Write',
+      backstory: 'Expert',
+      tasks,
+    });
+    const ext = result['extensions'] as Record<string, unknown>;
+    expect(ext).toBeDefined();
+    const crewai = ext['crewai'] as Record<string, unknown>;
+    expect(crewai['tasks']).toEqual(tasks);
+  });
+
+  it('emits console.warn when a model is upgraded via MODEL_MAP', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    importCrewAI({
+      role: 'agent',
+      goal: 'g',
+      backstory: 'b',
+      llm: 'claude-3-sonnet',
+    });
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    const msg = warnSpy.mock.calls[0][0] as string;
+    expect(msg).toContain('claude-3-sonnet');
+    expect(msg).toContain('claude-sonnet-4-20250514');
+    warnSpy.mockRestore();
+  });
+
+  it('does not warn when model is not upgraded', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    importCrewAI({
+      role: 'agent',
+      goal: 'g',
+      backstory: 'b',
+      llm: 'gpt-4-turbo',
+    });
+    expect(warnSpy).not.toHaveBeenCalled();
+    warnSpy.mockRestore();
+  });
 });
 
 describe('OpenAI importer', () => {
@@ -221,6 +265,30 @@ describe('OpenAI importer', () => {
     const ext = result['extensions'] as Record<string, unknown>;
     const openai = ext['openai'] as Record<string, unknown>;
     expect(openai['temperature']).toBe(0.7);
+  });
+
+  it('maps file_ids to context sources', () => {
+    const result = importOpenAI({
+      name: 'bot',
+      file_ids: ['file-abc123', 'file-def456'],
+    });
+    expect(result['context']).toEqual([
+      { file: 'file-abc123' },
+      { file: 'file-def456' },
+    ]);
+  });
+
+  it('does not create context when file_ids is empty', () => {
+    const result = importOpenAI({ name: 'bot', file_ids: [] });
+    expect(result['context']).toBeUndefined();
+  });
+
+  it('does not put file_ids into extensions.openai', () => {
+    const result = importOpenAI({
+      name: 'bot',
+      file_ids: ['file-abc123'],
+    });
+    expect(result['extensions']).toBeUndefined();
   });
 });
 
@@ -373,6 +441,54 @@ describe('LangChain importer', () => {
   it('does not create extensions when no unmapped fields', () => {
     const result = importLangChain({ llm: 'gpt-4', system_message: 'x' });
     expect(result['extensions']).toBeUndefined();
+  });
+
+  it('preserves memory_type and memory_config in extensions.langchain.memory', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const result = importLangChain({
+      llm: 'gpt-4',
+      system_message: 'x',
+      memory_type: 'buffer',
+      memory_config: { k: 5, return_messages: true },
+    });
+    const ext = result['extensions'] as Record<string, unknown>;
+    expect(ext).toBeDefined();
+    const lc = ext['langchain'] as Record<string, unknown>;
+    expect(lc['memory']).toEqual({ type: 'buffer', k: 5, return_messages: true });
+    warnSpy.mockRestore();
+  });
+
+  it('emits console.warn when memory config is present', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    importLangChain({
+      llm: 'gpt-4',
+      system_message: 'x',
+      memory_type: 'buffer',
+    });
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    const msg = warnSpy.mock.calls[0][0] as string;
+    expect(msg).toContain('memory config is not supported');
+    warnSpy.mockRestore();
+  });
+
+  it('does not warn when no memory config is present', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    importLangChain({ llm: 'gpt-4', system_message: 'x' });
+    expect(warnSpy).not.toHaveBeenCalled();
+    warnSpy.mockRestore();
+  });
+
+  it('preserves only memory_config when memory_type is absent', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const result = importLangChain({
+      llm: 'gpt-4',
+      system_message: 'x',
+      memory_config: { k: 10 },
+    });
+    const ext = result['extensions'] as Record<string, unknown>;
+    const lc = ext['langchain'] as Record<string, unknown>;
+    expect(lc['memory']).toEqual({ k: 10 });
+    warnSpy.mockRestore();
   });
 });
 

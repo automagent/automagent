@@ -137,12 +137,7 @@
         "assertions": {
           "type": "array",
           "items": {
-            "type": "object",
-            "additionalProperties": true,
-            "properties": {
-              "input": { "type": "string" },
-              "expected": { "type": "string" }
-            }
+            "$ref": "#/definitions/Assertion"
           }
         }
       }
@@ -340,12 +335,12 @@
         },
         "transport": {
           "type": "string",
-          "enum": ["stdio", "streamable-http"],
+          "enum": ["stdio", "sse", "streamable-http"],
           "description": "Transport type."
         },
         "url": {
           "type": "string",
-          "description": "URL for streamable-http transport."
+          "description": "URL for sse or streamable-http transport."
         },
         "command": {
           "type": "string",
@@ -365,7 +360,17 @@
             "scope": { "type": "string" }
           }
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "transport": { "const": "stdio" } }, "required": ["transport"] },
+          "then": { "required": ["command"] }
+        },
+        {
+          "if": { "properties": { "transport": { "enum": ["sse", "streamable-http"] } }, "required": ["transport"] },
+          "then": { "required": ["url"] }
+        }
+      ]
     },
     "ContextSource": {
       "type": "object",
@@ -597,6 +602,26 @@
         "changelog": {
           "type": "string",
           "description": "Inline changelog."
+        }
+      }
+    },
+    "Assertion": {
+      "type": "object",
+      "description": "A behavioral assertion for evaluation.",
+      "required": ["type"],
+      "additionalProperties": true,
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Assertion type (e.g., 'exact', 'contains', 'semantic')."
+        },
+        "input": {
+          "type": "string",
+          "description": "Input to the agent."
+        },
+        "expected": {
+          "type": "string",
+          "description": "Expected output or behavior."
         }
       }
     }

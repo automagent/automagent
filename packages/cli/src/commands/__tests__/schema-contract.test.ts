@@ -2,7 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { validate, fixtures, NAME_PATTERN, NAME_MAX_LENGTH } from '@automagent/schema';
+import { validate, NAME_PATTERN, NAME_MAX_LENGTH } from '@automagent/schema';
+import * as fixtures from '@automagent/schema/fixtures';
 import agentSchema from '@automagent/schema/v1.schema.json' with { type: 'json' };
 import { importCrewAI } from '../../importers/crewai.js';
 import { importOpenAI } from '../../importers/openai.js';
@@ -167,9 +168,9 @@ describe('structural parity', () => {
     expect(kindEnum).toEqual(['agent', 'team']);
   });
 
-  it('schema transport enum is stdio and streamable-http', () => {
+  it('schema transport enum is stdio, sse, and streamable-http', () => {
     const def = (agentSchema.definitions as Record<string, { properties: Record<string, { enum?: string[] }> }>)['McpServerConfig'];
-    expect(def.properties.transport.enum).toEqual(['stdio', 'streamable-http']);
+    expect(def.properties.transport.enum).toEqual(['stdio', 'sse', 'streamable-http']);
   });
 
   it('schema guardrail action enum is block, warn, transform, log', () => {

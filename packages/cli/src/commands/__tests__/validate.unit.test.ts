@@ -286,6 +286,48 @@ describe('runChecks', () => {
     expect(warnings).toBe(0);
   });
 
+  // -- model pinning: ModelShorthand form --
+
+  it('returns 1 warning for unpinned model in shorthand default form', () => {
+    const { warnings } = runChecks(
+      minimalAgent({ model: { default: 'claude-sonnet' } }),
+      '/tmp',
+    );
+    expect(warnings).toBe(1);
+  });
+
+  it('returns 0 warnings for pinned model in shorthand default form', () => {
+    const { warnings } = runChecks(
+      minimalAgent({ model: { default: 'claude-sonnet-4-20250514' } }),
+      '/tmp',
+    );
+    expect(warnings).toBe(0);
+  });
+
+  it('returns 1 warning for unpinned fallback in shorthand form', () => {
+    const { warnings } = runChecks(
+      minimalAgent({ model: { default: 'claude-sonnet-4-20250514', fallback: 'gpt-4' } }),
+      '/tmp',
+    );
+    expect(warnings).toBe(1);
+  });
+
+  it('returns 2 warnings for unpinned default and fallback in shorthand form', () => {
+    const { warnings } = runChecks(
+      minimalAgent({ model: { default: 'claude-sonnet', fallback: 'gpt-4' } }),
+      '/tmp',
+    );
+    expect(warnings).toBe(2);
+  });
+
+  it('returns 0 warnings for pinned default and fallback in shorthand form', () => {
+    const { warnings } = runChecks(
+      minimalAgent({ model: { default: 'claude-sonnet-4-20250514', fallback: 'gpt-4-0125-preview' } }),
+      '/tmp',
+    );
+    expect(warnings).toBe(0);
+  });
+
   // -- secret detection --
 
   it('returns errors > 0 when a secret is in instructions', () => {

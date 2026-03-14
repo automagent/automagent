@@ -171,14 +171,31 @@ export function runChecks(
       success(`Model "${model}" is specified`);
     }
   } else if (model !== null && typeof model === 'object') {
-    const modelId = (model as Record<string, unknown>)['id'];
+    const modelObj = model as Record<string, unknown>;
+    // ModelConfig form uses "id", ModelShorthand form uses "default"
+    const modelId = modelObj['id'] ?? modelObj['default'];
+    const modelFallback = typeof modelObj['fallback'] === 'string' ? modelObj['fallback'] : undefined;
+    let modelWarned = false;
+
     if (typeof modelId === 'string' && UNPINNED_MODEL_PATTERNS.has(modelId)) {
       warn(
         `Model "${modelId}" is an unpinned alias. ` +
           'Consider pinning to a specific version.',
       );
       warnings++;
-    } else {
+      modelWarned = true;
+    }
+
+    if (typeof modelFallback === 'string' && UNPINNED_MODEL_PATTERNS.has(modelFallback)) {
+      warn(
+        `Fallback model "${modelFallback}" is an unpinned alias. ` +
+          'Consider pinning to a specific version.',
+      );
+      warnings++;
+      modelWarned = true;
+    }
+
+    if (!modelWarned) {
       success('Model configuration is specified');
     }
   }

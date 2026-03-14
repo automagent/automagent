@@ -14,6 +14,7 @@ export interface OpenAIAgentConfig {
     };
   }>;
   handoffs?: Array<string | { name: string; [key: string]: unknown }>;
+  file_ids?: string[];
   [key: string]: unknown;
 }
 
@@ -54,6 +55,11 @@ export function importOpenAI(data: OpenAIAgentConfig): Record<string, unknown> {
     result['tools'] = functionTools;
   }
 
+  // Map file_ids to context sources
+  if (data.file_ids && data.file_ids.length > 0) {
+    result['context'] = data.file_ids.map((fileId) => ({ file: fileId }));
+  }
+
   // Map handoffs to dependencies.agents
   if (data.handoffs && data.handoffs.length > 0) {
     const agents = data.handoffs.map((handoff) => {
@@ -70,7 +76,7 @@ export function importOpenAI(data: OpenAIAgentConfig): Record<string, unknown> {
   }
 
   // Collect unmapped top-level fields
-  const knownKeys = new Set(['name', 'instructions', 'model', 'tools', 'handoffs']);
+  const knownKeys = new Set(['name', 'instructions', 'model', 'tools', 'handoffs', 'file_ids']);
   const unmapped: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(data)) {
     if (!knownKeys.has(key)) {

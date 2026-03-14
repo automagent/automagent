@@ -29,7 +29,8 @@ export function searchCommand(program: Command): void {
     .option('--page <n>', 'Page number', '1')
     .option('--hub-url <url>', 'Hub URL', DEFAULT_HUB)
     .option('--insecure', 'Allow insecure HTTP connections')
-    .action(async (query: string | undefined, opts: { tags?: string; hubUrl: string; limit: string; page: string; insecure?: boolean }) => {
+    .option('--json', 'Output raw JSON')
+    .action(async (query: string | undefined, opts: { tags?: string; hubUrl: string; limit: string; page: string; insecure?: boolean; json?: boolean }) => {
       if (!checkHubSecurity(opts.hubUrl, opts.insecure)) {
         process.exitCode = 1;
         return;
@@ -57,6 +58,11 @@ export function searchCommand(program: Command): void {
         }
 
         const body = res.data!;
+
+        if (opts.json) {
+          console.log(JSON.stringify(body, null, 2));
+          return;
+        }
 
         if (body.agents.length === 0) {
           info('No agents found.');

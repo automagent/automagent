@@ -59,7 +59,7 @@ export function pullCommand(program: Command): void {
       const client = new HubClient(opts.hubUrl);
       try {
         const agentPath = `/agents/${encodeURIComponent(parsed.scope)}/${encodeURIComponent(parsed.name)}${parsed.version ? `?version=${encodeURIComponent(parsed.version)}` : ''}`;
-        const res = await client.request<{ definition: Record<string, unknown>; version: string }>(agentPath);
+        const res = await client.request<Record<string, unknown>>(agentPath);
 
         if (res.status === 404) {
           error(`Agent not found: ${ref}`);
@@ -73,10 +73,17 @@ export function pullCommand(program: Command): void {
           return;
         }
 
-        const yamlContent = `${SCHEMA_HEADER}\n${stringify(res.data!.definition, YAML_STRINGIFY_OPTIONS)}`;
+        const body = res.data!;
+        if (!body.definition || typeof body.definition !== 'object' || !body.version || typeof body.version !== 'string') {
+          error('Invalid response from hub: missing definition or version');
+          process.exitCode = 1;
+          return;
+        }
+
+        const yamlContent = `${SCHEMA_HEADER}\n${stringify(body.definition as Record<string, unknown>, YAML_STRINGIFY_OPTIONS)}`;
 
         writeFileSync(outputPath, yamlContent, 'utf-8');
-        success(`Pulled ${parsed.scope}/${parsed.name}@${res.data!.version} to ${opts.output}`);
+        success(`Pulled ${parsed.scope}/${parsed.name}@${body.version} to ${opts.output}`);
       } catch (err) {
         HubClient.handleError(err);
       }

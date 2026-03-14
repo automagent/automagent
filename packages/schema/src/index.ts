@@ -104,7 +104,7 @@ export interface McpServerConfig {
   /** MCP server name */
   name: string;
   /** Transport type */
-  transport: 'stdio' | 'streamable-http';
+  transport: 'stdio' | 'sse' | 'streamable-http';
   /** URL for streamable-http transport */
   url?: string;
   /** Command for stdio transport */
@@ -253,6 +253,19 @@ export interface Metadata {
 }
 
 /**
+ * A behavioral assertion for evaluation.
+ */
+export interface Assertion {
+  /** Assertion type (e.g., 'exact', 'contains', 'semantic') */
+  type: string;
+  /** Input to the agent */
+  input?: string;
+  /** Expected output or behavior */
+  expected?: string;
+  [key: string]: unknown;
+}
+
+/**
  * The full agent definition — the core type for agent.yaml files.
  *
  * Only `name` and `description` are required.
@@ -293,7 +306,7 @@ export interface AgentDefinition {
   evaluation?: {
     dataset?: string;
     minimum_score?: number;
-    assertions?: Array<{ input?: string; expected?: string; [key: string]: unknown }>;
+    assertions?: Assertion[];
     [key: string]: unknown;
   };
   /** Events and schedules that activate the agent */
@@ -473,9 +486,6 @@ export function validateCompose(data: unknown): ValidationResult {
 
 // Re-export schemas for direct access
 export { agentSchema, composeSchema };
-
-// Re-export shared fixtures for cross-package testing
-export * as fixtures from './fixtures.js';
 
 // Export the name pattern for use by consumers (avoids duplication)
 export const NAME_PATTERN = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/;

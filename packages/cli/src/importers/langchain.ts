@@ -1,3 +1,4 @@
+import chalk from 'chalk';
 import { slugify } from '../utils/slugify.js';
 import { DEFAULT_IMPORT_MODEL } from '../utils/constants.js';
 
@@ -22,6 +23,8 @@ export interface LangChainAgentConfig {
   }>;
   tags?: string[];
   metadata?: Record<string, unknown>;
+  memory_type?: string;
+  memory_config?: Record<string, unknown>;
   [key: string]: unknown;
 }
 
@@ -84,13 +87,27 @@ export function importLangChain(data: LangChainAgentConfig): Record<string, unkn
     result['metadata'] = { tags: data.tags };
   }
 
+  // Handle memory config — warn and preserve in extensions
+  const hasMemory = data.memory_type !== undefined || data.memory_config !== undefined;
+  if (hasMemory) {
+    console.warn(chalk.yellow('  \u26A0 LangChain memory config is not supported and was dropped'));
+  }
+
   // Collect unmapped fields into extensions.langchain
-  const knownKeys = new Set(['name', 'agent_type', 'metadata', 'llm', 'model', 'prompt', 'system_message', 'tools', 'tags']);
+  const knownKeys = new Set(['name', 'agent_type', 'metadata', 'llm', 'model', 'prompt', 'system_message', 'tools', 'tags', 'memory_type', 'memory_config']);
   const unmapped: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(data)) {
     if (!knownKeys.has(key)) {
       unmapped[key] = value;
     }
+  }
+
+  // Preserve memory config in extensions.langchain.memory
+  if (hasMemory) {
+    const memory: Record<string, unknown> = {};
+    if (data.memory_type !== undefined) memory['type'] = data.memory_type;
+    if (data.memory_config !== undefined) Object.assign(memory, data.memory_config);
+    unmapped['memory'] = memory;
   }
 
   if (Object.keys(unmapped).length > 0) {

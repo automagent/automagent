@@ -18,7 +18,8 @@ export function versionsCommand(program: Command): void {
     .argument('<name>', 'Agent name')
     .option('--hub-url <url>', 'Hub URL', DEFAULT_HUB)
     .option('--insecure', 'Allow insecure HTTP connections')
-    .action(async (scope: string, name: string, opts: { hubUrl: string; insecure?: boolean }) => {
+    .option('--json', 'Output raw JSON')
+    .action(async (scope: string, name: string, opts: { hubUrl: string; insecure?: boolean; json?: boolean }) => {
       if (!checkHubSecurity(opts.hubUrl, opts.insecure)) {
         process.exitCode = 1;
         return;
@@ -41,7 +42,14 @@ export function versionsCommand(program: Command): void {
           return;
         }
 
-        const versions = res.data!.versions;
+        const body = res.data!;
+
+        if (opts.json) {
+          console.log(JSON.stringify(body, null, 2));
+          return;
+        }
+
+        const versions = body.versions;
         if (versions.length === 0) {
           console.log(chalk.dim('No versions found.'));
           return;

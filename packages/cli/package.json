@@ -32,8 +32,8 @@
     "vitest": "^2.1.0"
   },
   "peerDependencies": {
-    "@anthropic-ai/sdk": ">=0.30.0",
-    "openai": ">=4.0.0"
+    "@anthropic-ai/sdk": ">=0.39.0",
+    "openai": ">=4.77.0"
   },
   "peerDependenciesMeta": {
     "@anthropic-ai/sdk": {
