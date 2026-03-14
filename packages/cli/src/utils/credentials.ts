@@ -7,6 +7,7 @@ export interface Credentials {
   token: string;
   username: string;
   hubUrl: string;
+  expiresAt?: string;
 }
 
 function defaultDir(): string {
@@ -30,6 +31,10 @@ export function loadCredentials(dir: string = defaultDir()): Credentials | null 
   try {
     const parsed = JSON.parse(readFileSync(p, 'utf-8'));
     if (typeof parsed?.token !== 'string' || typeof parsed?.username !== 'string' || typeof parsed?.hubUrl !== 'string') {
+      return null;
+    }
+    if (typeof parsed.expiresAt === 'string' && new Date(parsed.expiresAt).getTime() < Date.now()) {
+      console.error(chalk.yellow('  \u26a0 Credentials have expired. Run \'automagent login\' to re-authenticate.'));
       return null;
     }
     return parsed as Credentials;
@@ -56,8 +61,18 @@ export function getAuthHeaders(targetUrl?: string): Record<string, string> {
   return { Authorization: `Bearer ${creds.token}` };
 }
 
-export function warnIfInsecure(url: string): void {
-  if (url.startsWith('http://') && !url.startsWith('http://localhost')) {
-    console.error(chalk.yellow('  ⚠ Using insecure HTTP. Auth tokens will be sent in cleartext.'));
+export function checkHubSecurity(url: string, allowInsecure?: boolean): boolean {
+  if (url.startsWith('http://') && !url.startsWith('http://localhost') && !url.startsWith('http://127.0.0.1')) {
+    if (!allowInsecure) {
+      console.error(chalk.red('Refusing to send credentials over insecure HTTP. Use --insecure to override.'));
+      return false;
+    }
+    console.error(chalk.yellow('  \u26a0 Using insecure HTTP. Auth tokens will be sent in cleartext.'));
   }
+  return true;
+}
+
+/** @deprecated Use checkHubSecurity instead */
+export function warnIfInsecure(url: string): void {
+  checkHubSecurity(url, true);
 }

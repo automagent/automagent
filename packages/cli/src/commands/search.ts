@@ -1,7 +1,7 @@
 import type { Command } from 'commander';
 import chalk from 'chalk';
 import { error, info, heading } from '../utils/output.js';
-import { getAuthHeaders, warnIfInsecure } from '../utils/credentials.js';
+import { getAuthHeaders, checkHubSecurity } from '../utils/credentials.js';
 import { DEFAULT_HUB } from '../utils/constants.js';
 
 interface SearchResult {
@@ -27,8 +27,12 @@ export function searchCommand(program: Command): void {
     .option('--limit <n>', 'Results per page', '20')
     .option('--page <n>', 'Page number', '1')
     .option('--hub-url <url>', 'Hub URL', DEFAULT_HUB)
-    .action(async (query: string | undefined, opts: { tags?: string; hubUrl: string; limit: string; page: string }) => {
-      warnIfInsecure(opts.hubUrl);
+    .option('--insecure', 'Allow insecure HTTP connections')
+    .action(async (query: string | undefined, opts: { tags?: string; hubUrl: string; limit: string; page: string; insecure?: boolean }) => {
+      if (!checkHubSecurity(opts.hubUrl, opts.insecure)) {
+        process.exitCode = 1;
+        return;
+      }
       heading('Searching hub');
 
       const limit = Math.max(1, Math.min(100, parseInt(opts.limit, 10) || 20));

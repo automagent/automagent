@@ -2,7 +2,7 @@ import { describe, it, expect, afterEach, vi } from 'vitest';
 import { existsSync, rmSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir, homedir } from 'node:os';
-import { saveCredentials, loadCredentials, clearCredentials, getAuthHeaders } from '../../utils/credentials.js';
+import { saveCredentials, loadCredentials, clearCredentials, getAuthHeaders, checkHubSecurity, warnIfInsecure } from '../../utils/credentials.js';
 
 // Mock node:os so we can control homedir() for getAuthHeaders tests.
 // All other exports (tmpdir, etc.) are passed through from the real module.
@@ -100,5 +100,73 @@ describe('getAuthHeaders', () => {
 
     const headers = getAuthHeaders();
     expect(headers).toEqual({});
+  });
+});
+
+describe('credentials expiration', () => {
+  afterEach(() => {
+    if (existsSync(testDir)) {
+      rmSync(testDir, { recursive: true });
+    }
+  });
+
+  it('returns credentials when expiresAt is in the future', () => {
+    const future = new Date(Date.now() + 60_000).toISOString();
+    saveCredentials({ token: 'abc123', username: 'testuser', hubUrl: 'http://localhost:3000', expiresAt: future }, testDir);
+    const creds = loadCredentials(testDir);
+    expect(creds).not.toBeNull();
+    expect(creds!.token).toBe('abc123');
+  });
+
+  it('returns null and warns when expiresAt is in the past', () => {
+    const past = new Date(Date.now() - 60_000).toISOString();
+    saveCredentials({ token: 'abc123', username: 'testuser', hubUrl: 'http://localhost:3000', expiresAt: past }, testDir);
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const creds = loadCredentials(testDir);
+    expect(creds).toBeNull();
+    expect(spy).toHaveBeenCalledWith(expect.stringContaining('Credentials have expired'));
+    spy.mockRestore();
+  });
+
+  it('returns credentials when expiresAt is not set (backward compat)', () => {
+    saveCredentials({ token: 'abc123', username: 'testuser', hubUrl: 'http://localhost:3000' }, testDir);
+    const creds = loadCredentials(testDir);
+    expect(creds).not.toBeNull();
+    expect(creds!.token).toBe('abc123');
+  });
+});
+
+describe('checkHubSecurity', () => {
+  it('returns true for HTTPS URLs', () => {
+    expect(checkHubSecurity('https://hub.automagent.dev')).toBe(true);
+  });
+
+  it('returns true for localhost HTTP URLs', () => {
+    expect(checkHubSecurity('http://localhost:3000')).toBe(true);
+  });
+
+  it('returns true for 127.0.0.1 HTTP URLs', () => {
+    expect(checkHubSecurity('http://127.0.0.1:3000')).toBe(true);
+  });
+
+  it('returns false for non-localhost HTTP without allowInsecure', () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    expect(checkHubSecurity('http://example.com')).toBe(false);
+    expect(spy).toHaveBeenCalledWith(expect.stringContaining('Refusing to send credentials over insecure HTTP'));
+    spy.mockRestore();
+  });
+
+  it('returns true for non-localhost HTTP with allowInsecure', () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    expect(checkHubSecurity('http://example.com', true)).toBe(true);
+    expect(spy).toHaveBeenCalledWith(expect.stringContaining('Using insecure HTTP'));
+    spy.mockRestore();
+  });
+
+  it('deprecated warnIfInsecure still works', () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    warnIfInsecure('http://example.com');
+    expect(spy).toHaveBeenCalledWith(expect.stringContaining('Using insecure HTTP'));
+    spy.mockRestore();
   });
 });

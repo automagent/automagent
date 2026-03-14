@@ -8,6 +8,60 @@ const MAX_TOOL_ROUNDS = 20;
 const MAX_CONTEXT_MESSAGES = 100;
 
 /**
+ * Inspect an API error and return a user-friendly message.
+ * Checks both the stringified message and, when available, the HTTP status
+ * code exposed by the Anthropic / OpenAI SDK error objects.
+ */
+function formatApiError(err: unknown): { label: string; suggestion: string } | null {
+  const msg = String(err).toLowerCase();
+  const status = typeof err === 'object' && err !== null && 'status' in err
+    ? (err as { status: number }).status
+    : undefined;
+
+  // Authentication
+  if (status === 401 || /invalid.*key|auth|unauthorized/.test(msg)) {
+    return {
+      label: 'Authentication error',
+      suggestion: 'API key is invalid or missing. Check your ANTHROPIC_API_KEY / OPENAI_API_KEY environment variable.',
+    };
+  }
+
+  // Rate limiting
+  if (status === 429 || /rate.?limit|too many requests/.test(msg)) {
+    return {
+      label: 'Rate limited',
+      suggestion: 'Rate limited by the API. Wait a moment and try again.',
+    };
+  }
+
+  // Billing / quota
+  if (/billing|quota|insufficient|exceeded/.test(msg)) {
+    return {
+      label: 'Billing/quota error',
+      suggestion: 'API billing issue. Check your account and billing status.',
+    };
+  }
+
+  // Context length
+  if (/context|token|too many|max_tokens|context_length/.test(msg)) {
+    return {
+      label: 'Context length exceeded',
+      suggestion: 'The conversation is too long for this model. Please start a new session.',
+    };
+  }
+
+  // Network errors
+  if (/econnrefused|enotfound|fetch failed|network/.test(msg)) {
+    return {
+      label: 'Network error',
+      suggestion: 'Network error. Check your internet connection.',
+    };
+  }
+
+  return null;
+}
+
+/**
  * Trim a messages array to stay within MAX_CONTEXT_MESSAGES.
  * Keeps the first message (system/initial context) plus the most recent
  * messages. Returns a new array when trimming occurs, or the original
@@ -168,10 +222,10 @@ async function runAnthropic(config: RunConfig): Promise<void> {
         console.log(chalk.cyan(`${config.name} > `) + text + '\n');
       } catch (err) {
         spinner.stop();
-        const errMsg = String(err).toLowerCase();
-        if (errMsg.includes('context') || errMsg.includes('token') || errMsg.includes('too many') || errMsg.includes('max_tokens') || errMsg.includes('context_length')) {
-          console.log(chalk.red('Error: context length exceeded.'));
-          console.log(chalk.yellow('The conversation is too long for this model. Please start a new session.\n'));
+        const classified = formatApiError(err);
+        if (classified) {
+          console.log(chalk.red(`Error: ${classified.label}.`));
+          console.log(chalk.yellow(classified.suggestion + '\n'));
         } else {
           console.log(chalk.red('Error: ') + String(err) + '\n');
         }
@@ -308,10 +362,10 @@ async function runOpenAI(config: RunConfig): Promise<void> {
         console.log(chalk.cyan(`${config.name} > `) + text + '\n');
       } catch (err) {
         spinner.stop();
-        const errMsg = String(err).toLowerCase();
-        if (errMsg.includes('context') || errMsg.includes('token') || errMsg.includes('too many') || errMsg.includes('max_tokens') || errMsg.includes('context_length')) {
-          console.log(chalk.red('Error: context length exceeded.'));
-          console.log(chalk.yellow('The conversation is too long for this model. Please start a new session.\n'));
+        const classified = formatApiError(err);
+        if (classified) {
+          console.log(chalk.red(`Error: ${classified.label}.`));
+          console.log(chalk.yellow(classified.suggestion + '\n'));
         } else {
           console.log(chalk.red('Error: ') + String(err) + '\n');
         }

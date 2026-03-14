@@ -3,7 +3,7 @@ import { existsSync, writeFileSync } from 'node:fs';
 import type { Command } from 'commander';
 import { stringify } from 'yaml';
 import { success, error, info, heading } from '../utils/output.js';
-import { getAuthHeaders, warnIfInsecure } from '../utils/credentials.js';
+import { getAuthHeaders, checkHubSecurity } from '../utils/credentials.js';
 import { SCHEMA_HEADER, DEFAULT_HUB, YAML_STRINGIFY_OPTIONS } from '../utils/constants.js';
 
 export function parseAgentRef(ref: string): { scope: string; name: string; version?: string } {
@@ -30,10 +30,14 @@ export function pullCommand(program: Command): void {
     .option('-o, --output <path>', 'Output file path', './agent.yaml')
     .option('--hub-url <url>', 'Hub URL', DEFAULT_HUB)
     .option('--force', 'Overwrite existing file')
-    .action(async (ref: string, opts: { output: string; hubUrl: string; force?: boolean }) => {
+    .option('--insecure', 'Allow insecure HTTP connections')
+    .action(async (ref: string, opts: { output: string; hubUrl: string; force?: boolean; insecure?: boolean }) => {
       const outputPath = resolve(opts.output);
 
-      warnIfInsecure(opts.hubUrl);
+      if (!checkHubSecurity(opts.hubUrl, opts.insecure)) {
+        process.exitCode = 1;
+        return;
+      }
       heading('Pulling from hub');
 
       if (existsSync(outputPath) && !opts.force) {

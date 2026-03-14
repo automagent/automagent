@@ -4,7 +4,7 @@ import { validate } from '@automagent/schema';
 import { parseYamlFile } from '../utils/yaml.js';
 import chalk from 'chalk';
 import { success, error, info, heading } from '../utils/output.js';
-import { getAuthHeaders, loadCredentials, warnIfInsecure } from '../utils/credentials.js';
+import { getAuthHeaders, loadCredentials, checkHubSecurity } from '../utils/credentials.js';
 import { DEFAULT_HUB } from '../utils/constants.js';
 
 export function pushCommand(program: Command): void {
@@ -14,10 +14,14 @@ export function pushCommand(program: Command): void {
     .argument('[path]', 'Path to agent.yaml', './agent.yaml')
     .option('--hub-url <url>', 'Hub URL', DEFAULT_HUB)
     .option('--scope <scope>', 'Agent scope (default: @local)')
-    .action(async (path: string, opts: { hubUrl: string; scope?: string }) => {
+    .option('--insecure', 'Allow insecure HTTP connections')
+    .action(async (path: string, opts: { hubUrl: string; scope?: string; insecure?: boolean }) => {
       const filePath = resolve(path);
 
-      warnIfInsecure(opts.hubUrl);
+      if (!checkHubSecurity(opts.hubUrl, opts.insecure)) {
+        process.exitCode = 1;
+        return;
+      }
       heading('Pushing to hub');
 
       const { data, error: parseError } = parseYamlFile(filePath);

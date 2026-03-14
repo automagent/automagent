@@ -395,19 +395,19 @@ describe('LangChain importer', () => {
 // 3. Tool mocker
 // ---------------------------------------------------------------------------
 describe('Tool mocker', () => {
-  it('returns JSON with mock flag, tool name, and result message', () => {
+  it('returns JSON with tool name, input, and result message', () => {
     const response = mockToolResponse({ name: 'web_search', input: { query: 'test' } });
     const parsed = JSON.parse(response);
-    expect(parsed.mock).toBe(true);
     expect(parsed.tool).toBe('web_search');
-    expect(parsed.result).toContain('web_search');
-    expect(parsed.result).toContain('Mock response');
+    expect(parsed.input).toEqual({ query: 'test' });
+    expect(parsed.result).toBe('Mock: this tool would execute in production');
   });
 
   it('handles tool names with special characters', () => {
     const response = mockToolResponse({ name: 'my-custom_tool.v2', input: {} });
     const parsed = JSON.parse(response);
     expect(parsed.tool).toBe('my-custom_tool.v2');
+    expect(parsed.input).toEqual({});
   });
 });
 

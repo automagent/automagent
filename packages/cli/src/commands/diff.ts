@@ -4,12 +4,13 @@ import { stringify } from 'yaml';
 import chalk from 'chalk';
 import { parseYamlFile } from '../utils/yaml.js';
 import { error, info, heading } from '../utils/output.js';
-import { getAuthHeaders, warnIfInsecure } from '../utils/credentials.js';
+import { getAuthHeaders, checkHubSecurity } from '../utils/credentials.js';
 import { DEFAULT_HUB, YAML_STRINGIFY_OPTIONS } from '../utils/constants.js';
 
 function diffLines(localLines: string[], remoteLines: string[]): string[] {
   const output: string[] = [];
-  const maxLen = Math.max(localLines.length, remoteLines.length);
+  const localSet = new Set(localLines);
+  const remoteSet = new Set(remoteLines);
 
   let i = 0;
   let j = 0;
@@ -22,10 +23,10 @@ function diffLines(localLines: string[], remoteLines: string[]): string[] {
       output.push(`  ${localLine}`);
       i++;
       j++;
-    } else if (remoteLine !== undefined && !localLines.includes(remoteLine, i)) {
+    } else if (remoteLine !== undefined && !localSet.has(remoteLine)) {
       output.push(chalk.red(`- ${remoteLine}`));
       j++;
-    } else if (localLine !== undefined && !remoteLines.includes(localLine, j)) {
+    } else if (localLine !== undefined && !remoteSet.has(localLine)) {
       output.push(chalk.green(`+ ${localLine}`));
       i++;
     } else {
@@ -51,10 +52,14 @@ export function diffCommand(program: Command): void {
     .option('--hub-url <url>', 'Hub URL', DEFAULT_HUB)
     .option('--scope <scope>', 'Agent scope (e.g. @acme)')
     .option('--version <version>', 'Compare against specific version')
-    .action(async (path: string, opts: { hubUrl: string; scope?: string; version?: string }) => {
+    .option('--insecure', 'Allow insecure HTTP connections')
+    .action(async (path: string, opts: { hubUrl: string; scope?: string; version?: string; insecure?: boolean }) => {
       const filePath = resolve(path);
 
-      warnIfInsecure(opts.hubUrl);
+      if (!checkHubSecurity(opts.hubUrl, opts.insecure)) {
+        process.exitCode = 1;
+        return;
+      }
       heading('Comparing with hub');
 
       const parsed = parseYamlFile(filePath);

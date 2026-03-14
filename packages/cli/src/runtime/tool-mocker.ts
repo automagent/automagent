@@ -5,8 +5,8 @@ export interface ToolCall {
 
 export function mockToolResponse(tool: ToolCall): string {
   return JSON.stringify({
-    mock: true,
     tool: tool.name,
-    result: `Mock response for ${tool.name}. In production, this would connect to the real tool.`,
+    input: tool.input,
+    result: 'Mock: this tool would execute in production',
   });
 }
