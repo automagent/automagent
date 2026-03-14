@@ -10,6 +10,7 @@
     "apiVersion": {
       "type": "string",
       "description": "Schema version for evolution. Defaults to 'v1'.",
+      "enum": ["v1"],
       "default": "v1"
     },
     "kind": {
@@ -33,6 +34,7 @@
     "version": {
       "type": "string",
       "description": "Semver of this agent definition. Defaults to '0.1.0'.",
+      "pattern": "^\\d+\\.\\d+\\.\\d+(-[a-zA-Z0-9.]+)?(\\+[a-zA-Z0-9.]+)?$",
       "default": "0.1.0"
     },
     "description": {
@@ -369,6 +371,11 @@
       "type": "object",
       "description": "A static knowledge source.",
       "additionalProperties": true,
+      "anyOf": [
+        { "required": ["file"] },
+        { "required": ["url"] },
+        { "required": ["agent"] }
+      ],
       "properties": {
         "file": {
           "type": "string",
@@ -499,6 +506,10 @@
     "Trigger": {
       "type": "object",
       "additionalProperties": true,
+      "anyOf": [
+        { "required": ["event"] },
+        { "required": ["schedule"] }
+      ],
       "properties": {
         "event": {
           "type": "string",

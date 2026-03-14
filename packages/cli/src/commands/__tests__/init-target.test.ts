@@ -1,28 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { execSync } from 'node:child_process';
 import { mkdtempSync, writeFileSync, readFileSync, existsSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-
-const CLI_PATH = join(import.meta.dirname, '..', '..', '..', 'dist', 'index.js');
-
-function runCli(args: string, cwd: string): { stdout: string; exitCode: number } {
-  try {
-    const stdout = execSync(`node ${CLI_PATH} ${args}`, {
-      cwd,
-      encoding: 'utf-8',
-      env: { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1' },
-      timeout: 10_000,
-    });
-    return { stdout, exitCode: 0 };
-  } catch (err) {
-    const e = err as { stdout?: string; stderr?: string; status?: number };
-    return {
-      stdout: (e.stdout ?? '') + (e.stderr ?? ''),
-      exitCode: e.status ?? 1,
-    };
-  }
-}
+import { runCli } from './test-helpers.js';
 
 describe('init --target', () => {
   let tempDir: string;

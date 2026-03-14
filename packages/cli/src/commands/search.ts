@@ -1,8 +1,9 @@
 import type { Command } from 'commander';
 import chalk from 'chalk';
 import { error, info, heading } from '../utils/output.js';
-import { getAuthHeaders, checkHubSecurity } from '../utils/credentials.js';
+import { checkHubSecurity } from '../utils/credentials.js';
 import { DEFAULT_HUB } from '../utils/constants.js';
+import { HubClient } from '../utils/hub-client.js';
 
 interface SearchResult {
   agents: Array<{
@@ -45,22 +46,17 @@ export function searchCommand(program: Command): void {
       params.set('limit', String(limit));
       params.set('offset', String(offset));
 
-      const url = `${opts.hubUrl}/v1/search?${params}`;
-
+      const client = new HubClient(opts.hubUrl);
       try {
-        const res = await fetch(url, {
-          headers: { ...getAuthHeaders(opts.hubUrl) },
-          signal: AbortSignal.timeout(30_000),
-        });
+        const res = await client.request<SearchResult>(`/search?${params}`);
 
         if (!res.ok) {
-          const body = await res.json().catch(() => ({}));
-          error(`Hub returned ${res.status}: ${(body as Record<string, string>).error ?? res.statusText}`);
+          error(`Hub returned ${res.status}: ${res.error ?? 'Unknown error'}`);
           process.exitCode = 1;
           return;
         }
 
-        const body = (await res.json()) as SearchResult;
+        const body = res.data!;
 
         if (body.agents.length === 0) {
           info('No agents found.');
@@ -89,12 +85,7 @@ export function searchCommand(program: Command): void {
           console.log(chalk.dim(`Use --page ${page + 1} to see more results.`));
         }
       } catch (err) {
-        const hint = opts.hubUrl === DEFAULT_HUB
-          ? 'Check your internet connection.'
-          : `Is the hub running at ${opts.hubUrl}?`;
-        error(`Failed to connect to hub: ${err instanceof Error ? err.message : String(err)}`);
-        info(hint);
-        process.exitCode = 1;
+        HubClient.handleError(err);
       }
     });
 }

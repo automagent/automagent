@@ -1,28 +1,10 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { spawnSync, spawn, type ChildProcess } from 'node:child_process';
+import { spawn, type ChildProcess } from 'node:child_process';
 import { mkdtempSync, writeFileSync, readFileSync, rmSync, existsSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { createServer, type Server } from 'node:http';
-
-const CLI_PATH = join(import.meta.dirname, '..', '..', '..', 'dist', 'index.js');
-
-function runCli(
-  args: string,
-  cwd: string,
-  env?: Record<string, string>,
-): { stdout: string; exitCode: number } {
-  const result = spawnSync('node', [CLI_PATH, ...args.split(/\s+/)], {
-    cwd,
-    encoding: 'utf-8',
-    env: { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1', ...env },
-    timeout: 10_000,
-  });
-  return {
-    stdout: (result.stdout ?? '') + (result.stderr ?? ''),
-    exitCode: result.status ?? 1,
-  };
-}
+import { runCli, CLI_PATH } from './test-helpers.js';
 
 // ---------------------------------------------------------------------------
 // 1. logout command

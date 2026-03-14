@@ -4,8 +4,9 @@ import { stringify } from 'yaml';
 import chalk from 'chalk';
 import { parseYamlFile } from '../utils/yaml.js';
 import { error, info, heading } from '../utils/output.js';
-import { getAuthHeaders, checkHubSecurity } from '../utils/credentials.js';
+import { checkHubSecurity } from '../utils/credentials.js';
 import { DEFAULT_HUB, YAML_STRINGIFY_OPTIONS } from '../utils/constants.js';
+import { HubClient } from '../utils/hub-client.js';
 
 function diffLines(localLines: string[], remoteLines: string[]): string[] {
   const output: string[] = [];
@@ -84,15 +85,13 @@ export function diffCommand(program: Command): void {
         return;
       }
 
-      const url = `${opts.hubUrl}/v1/agents/${encodeURIComponent(scope)}/${encodeURIComponent(name)}${opts.version ? `?version=${encodeURIComponent(opts.version)}` : ''}`;
+      const client = new HubClient(opts.hubUrl);
 
       let remoteDef: Record<string, unknown>;
       let remoteVersion: string;
       try {
-        const res = await fetch(url, {
-          headers: { ...getAuthHeaders(opts.hubUrl) },
-          signal: AbortSignal.timeout(30_000),
-        });
+        const agentPath = `/agents/${encodeURIComponent(scope)}/${encodeURIComponent(name)}${opts.version ? `?version=${encodeURIComponent(opts.version)}` : ''}`;
+        const res = await client.request<{ definition: Record<string, unknown>; version: string }>(agentPath);
 
         if (res.status === 404) {
           info(`Agent ${scope}/${name} not found in hub. Nothing to compare.`);
@@ -100,21 +99,15 @@ export function diffCommand(program: Command): void {
         }
 
         if (!res.ok) {
-          error(`Hub returned ${res.status}: ${res.statusText}`);
+          error(`Hub returned ${res.status}: ${res.error ?? 'Unknown error'}`);
           process.exitCode = 1;
           return;
         }
 
-        const body = await res.json() as { definition: Record<string, unknown>; version: string };
-        remoteDef = body.definition;
-        remoteVersion = body.version;
+        remoteDef = res.data!.definition;
+        remoteVersion = res.data!.version;
       } catch (err) {
-        const hint = opts.hubUrl === DEFAULT_HUB
-          ? 'Check your internet connection.'
-          : `Is the hub running at ${opts.hubUrl}?`;
-        error(`Failed to connect to hub: ${err instanceof Error ? err.message : String(err)}`);
-        info(hint);
-        process.exitCode = 1;
+        HubClient.handleError(err);
         return;
       }
 

@@ -1,27 +1,10 @@
 import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach } from 'vitest';
-import { spawn, spawnSync } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { createServer, type Server, type IncomingMessage, type ServerResponse } from 'node:http';
-
-const CLI_PATH = join(import.meta.dirname, '..', '..', '..', 'dist', 'index.js');
-
-/**
- * Synchronous CLI runner — used for tests that don't need the mock server.
- */
-function runCliSync(args: string, cwd: string): { stdout: string; exitCode: number } {
-  const result = spawnSync('node', [CLI_PATH, ...args.split(/\s+/)], {
-    cwd,
-    encoding: 'utf-8',
-    env: { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1' },
-    timeout: 10_000,
-  });
-  return {
-    stdout: (result.stdout ?? '') + (result.stderr ?? ''),
-    exitCode: result.status ?? 1,
-  };
-}
+import { runCli as runCliSync, CLI_PATH } from './test-helpers.js';
 
 /**
  * Async CLI runner — uses spawn so the event loop stays free for the mock

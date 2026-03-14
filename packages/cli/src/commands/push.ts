@@ -3,9 +3,10 @@ import type { Command } from 'commander';
 import { validate } from '@automagent/schema';
 import { parseYamlFile } from '../utils/yaml.js';
 import chalk from 'chalk';
-import { success, error, info, heading } from '../utils/output.js';
-import { getAuthHeaders, loadCredentials, checkHubSecurity } from '../utils/credentials.js';
+import { success, error, heading } from '../utils/output.js';
+import { loadCredentials, checkHubSecurity } from '../utils/credentials.js';
 import { DEFAULT_HUB } from '../utils/constants.js';
+import { HubClient } from '../utils/hub-client.js';
 
 export function pushCommand(program: Command): void {
   program
@@ -53,40 +54,29 @@ export function pushCommand(program: Command): void {
       const scope = opts.scope ?? '@local';
       const tags = (def.metadata as Record<string, unknown> | undefined)?.tags as string[] | undefined;
 
-      const url = `${opts.hubUrl}/v1/agents/${encodeURIComponent(scope)}/${encodeURIComponent(name)}`;
-
       const creds = loadCredentials();
       if (!creds) {
         console.log(chalk.yellow('Warning: Not logged in. Push will fail if the hub requires authentication.'));
         console.log(chalk.yellow('Run `automagent login` to authenticate.\n'));
       }
 
+      const client = new HubClient(opts.hubUrl);
       try {
-        const res = await fetch(url, {
+        const agentPath = `/agents/${encodeURIComponent(scope)}/${encodeURIComponent(name)}`;
+        const res = await client.request(agentPath, {
           method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            ...getAuthHeaders(opts.hubUrl),
-          },
-          body: JSON.stringify({ version, definition: def, tags }),
-          signal: AbortSignal.timeout(30_000),
+          body: { version, definition: def, tags },
         });
 
         if (!res.ok) {
-          const body = await res.json().catch(() => ({}));
-          error(`Hub returned ${res.status}: ${(body as Record<string, string>).error ?? res.statusText}`);
+          error(`Hub returned ${res.status}: ${res.error ?? 'Unknown error'}`);
           process.exitCode = 1;
           return;
         }
 
         success(`Pushed ${scope}/${name}@${version} to ${opts.hubUrl}`);
       } catch (err) {
-        const hint = opts.hubUrl === DEFAULT_HUB
-          ? 'Check your internet connection.'
-          : `Is the hub running at ${opts.hubUrl}?`;
-        error(`Failed to connect to hub: ${err instanceof Error ? err.message : String(err)}`);
-        info(hint);
-        process.exitCode = 1;
+        HubClient.handleError(err);
       }
     });
 }

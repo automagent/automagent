@@ -1,5 +1,4 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { execSync, spawnSync } from 'node:child_process';
 import { mkdtempSync, writeFileSync, readFileSync, rmSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -9,21 +8,7 @@ import { importCrewAI } from '../../importers/crewai.js';
 import { importOpenAI } from '../../importers/openai.js';
 import { importLangChain } from '../../importers/langchain.js';
 import { mockToolResponse } from '../../runtime/tool-mocker.js';
-
-const CLI_PATH = join(import.meta.dirname, '..', '..', '..', 'dist', 'index.js');
-
-function runCli(args: string, cwd: string): { stdout: string; exitCode: number } {
-  const result = spawnSync('node', [CLI_PATH, ...args.split(/\s+/)], {
-    cwd,
-    encoding: 'utf-8',
-    env: { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1' },
-    timeout: 10_000,
-  });
-  return {
-    stdout: (result.stdout ?? '') + (result.stderr ?? ''),
-    exitCode: result.status ?? 1,
-  };
-}
+import { runCli } from './test-helpers.js';
 
 // ---------------------------------------------------------------------------
 // 1. YAML parsing

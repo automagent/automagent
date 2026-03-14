@@ -4,8 +4,8 @@ import { createServer, type Server, type IncomingMessage, type ServerResponse } 
 import { mkdtempSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
+import { CLI_PATH } from './test-helpers.js';
 
-const CLI_PATH = join(import.meta.dirname, '..', '..', '..', 'dist', 'index.js');
 const CLI_NODE_MODULES = join(import.meta.dirname, '..', '..', '..', 'node_modules');
 
 /**

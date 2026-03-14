@@ -420,6 +420,174 @@ describe('validate — agent definition', () => {
     expect(result.valid).toBe(false);
     expect(result.errors.length).toBeGreaterThanOrEqual(2);
   });
+
+  // -------------------------------------------------------------------------
+  // I-22: version field semver pattern
+  // -------------------------------------------------------------------------
+
+  it('accepts a valid semver version', () => {
+    const result = validate({
+      name: 'my-agent',
+      description: 'A helpful agent',
+      version: '1.0.0',
+    });
+    expect(result.valid).toBe(true);
+  });
+
+  it('accepts a semver version with prerelease', () => {
+    const result = validate({
+      name: 'my-agent',
+      description: 'A helpful agent',
+      version: '1.0.0-beta.1',
+    });
+    expect(result.valid).toBe(true);
+  });
+
+  it('accepts a semver version with build metadata', () => {
+    const result = validate({
+      name: 'my-agent',
+      description: 'A helpful agent',
+      version: '2.3.4+build.123',
+    });
+    expect(result.valid).toBe(true);
+  });
+
+  it('rejects version "latest" (not semver)', () => {
+    const result = validate({
+      name: 'my-agent',
+      description: 'A helpful agent',
+      version: 'latest',
+    });
+    expect(result.valid).toBe(false);
+    const patternError = result.errors.find(
+      (e) => e.schemaPath?.includes('pattern') || e.params?.pattern,
+    );
+    expect(patternError).toBeDefined();
+  });
+
+  it('rejects version "abc" (not semver)', () => {
+    const result = validate({
+      name: 'my-agent',
+      description: 'A helpful agent',
+      version: 'abc',
+    });
+    expect(result.valid).toBe(false);
+  });
+
+  // -------------------------------------------------------------------------
+  // I-23: apiVersion enum constraint
+  // -------------------------------------------------------------------------
+
+  it('accepts apiVersion "v1"', () => {
+    const result = validate({
+      name: 'my-agent',
+      description: 'A helpful agent',
+      apiVersion: 'v1',
+    });
+    expect(result.valid).toBe(true);
+  });
+
+  it('rejects apiVersion "v2" (not in enum)', () => {
+    const result = validate({
+      name: 'my-agent',
+      description: 'A helpful agent',
+      apiVersion: 'v2',
+    });
+    expect(result.valid).toBe(false);
+    const enumError = result.errors.find(
+      (e) => e.schemaPath?.includes('enum') || e.params?.allowedValues,
+    );
+    expect(enumError).toBeDefined();
+  });
+
+  it('rejects apiVersion "latest" (not in enum)', () => {
+    const result = validate({
+      name: 'my-agent',
+      description: 'A helpful agent',
+      apiVersion: 'latest',
+    });
+    expect(result.valid).toBe(false);
+  });
+
+  // -------------------------------------------------------------------------
+  // I-24: ContextSource requires at least one source type
+  // -------------------------------------------------------------------------
+
+  it('rejects ContextSource with empty object', () => {
+    const result = validate({
+      name: 'my-agent',
+      description: 'A helpful agent',
+      context: [{}],
+    });
+    expect(result.valid).toBe(false);
+  });
+
+  it('accepts ContextSource with file property', () => {
+    const result = validate({
+      name: 'my-agent',
+      description: 'A helpful agent',
+      context: [{ file: './docs/readme.md' }],
+    });
+    expect(result.valid).toBe(true);
+  });
+
+  it('accepts ContextSource with url property', () => {
+    const result = validate({
+      name: 'my-agent',
+      description: 'A helpful agent',
+      context: [{ url: 'https://example.com/docs' }],
+    });
+    expect(result.valid).toBe(true);
+  });
+
+  it('accepts ContextSource with agent property', () => {
+    const result = validate({
+      name: 'my-agent',
+      description: 'A helpful agent',
+      context: [{ agent: '@acme/helper:^1.0.0' }],
+    });
+    expect(result.valid).toBe(true);
+  });
+
+  // -------------------------------------------------------------------------
+  // I-25: Trigger requires at least event or schedule
+  // -------------------------------------------------------------------------
+
+  it('rejects Trigger with empty object', () => {
+    const result = validate({
+      name: 'my-agent',
+      description: 'A helpful agent',
+      triggers: [{}],
+    });
+    expect(result.valid).toBe(false);
+  });
+
+  it('accepts Trigger with event property', () => {
+    const result = validate({
+      name: 'my-agent',
+      description: 'A helpful agent',
+      triggers: [{ event: 'file.uploaded' }],
+    });
+    expect(result.valid).toBe(true);
+  });
+
+  it('accepts Trigger with schedule property', () => {
+    const result = validate({
+      name: 'my-agent',
+      description: 'A helpful agent',
+      triggers: [{ schedule: '0 9 * * 1' }],
+    });
+    expect(result.valid).toBe(true);
+  });
+
+  it('accepts Trigger with both event and schedule', () => {
+    const result = validate({
+      name: 'my-agent',
+      description: 'A helpful agent',
+      triggers: [{ event: 'file.uploaded', schedule: '0 9 * * 1' }],
+    });
+    expect(result.valid).toBe(true);
+  });
 });
 
 // =============================================================================
