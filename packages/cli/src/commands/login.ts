@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { createServer } from 'node:http';
-import { randomBytes } from 'node:crypto';
+import { randomBytes, createHash } from 'node:crypto';
 import { saveCredentials, loadCredentials, clearCredentials } from '../utils/credentials.js';
 import { DEFAULT_HUB } from '../utils/constants.js';
 
@@ -20,6 +20,8 @@ export function registerLogin(program: Command): void {
       console.log(chalk.bold('\nAutomagent Hub Login\n'));
 
       const state = randomBytes(16).toString('hex');
+      const codeVerifier = randomBytes(32).toString('base64url');
+      const codeChallenge = createHash('sha256').update(codeVerifier).digest('base64url');
 
       const port = await new Promise<number>((resolve, reject) => {
         const server = createServer(async (req, res) => {
@@ -50,7 +52,7 @@ export function registerLogin(program: Command): void {
             const tokenRes = await fetch(`${hubUrl}/auth/token`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ code }),
+              body: JSON.stringify({ code, code_verifier: codeVerifier }),
             });
             if (!tokenRes.ok) {
               const err = await tokenRes.json() as { error?: string };
@@ -114,7 +116,7 @@ export function registerLogin(program: Command): void {
         }, 120000);
       });
 
-      const authUrl = `${hubUrl}/auth/github?cli_port=${port}&state=${state}`;
+      const authUrl = `${hubUrl}/auth/github?cli_port=${port}&state=${state}&code_challenge=${codeChallenge}&code_challenge_method=S256`;
       console.log(`Opening browser to authenticate...\n`);
       console.log(`If the browser doesn't open, visit:\n${chalk.cyan(authUrl)}\n`);
 

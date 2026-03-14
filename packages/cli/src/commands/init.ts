@@ -6,7 +6,7 @@ import { stringify } from 'yaml';
 import chalk from 'chalk';
 import { success, warn, error, info, heading } from '../utils/output.js';
 import { SCHEMA_HEADER, YAML_STRINGIFY_OPTIONS } from '../utils/constants.js';
-import { NAME_PATTERN, NAME_MAX_LENGTH } from '@automagent/schema';
+import { NAME_PATTERN, NAME_MAX_LENGTH, type AgentDefinition } from '@automagent/schema';
 import { exportClaudeCode } from '../exporters/claude-code.js';
 import { exportCursor } from '../exporters/cursor.js';
 import { exportCopilot } from '../exporters/copilot.js';
@@ -141,7 +141,7 @@ export function initCommand(program: Command): void {
       // Export to targets if requested
       if (opts.target) {
         const targets = opts.target.split(',').map(t => t.trim());
-        const agentData = config as Record<string, unknown>;
+        const agentData = config as unknown as AgentDefinition;
         const outputDir = dirname(filePath);
 
         for (const target of targets) {

@@ -30,12 +30,12 @@ describe('importClaudeCode', () => {
     });
 
     expect(result.mcp).toHaveLength(2);
-    expect(result.mcp[0]).toMatchObject({
+    expect((result.mcp as unknown[])[0]).toMatchObject({
       name: 'playwright',
       transport: 'stdio',
       command: 'npx',
     });
-    expect(result.mcp[1]).toMatchObject({
+    expect((result.mcp as unknown[])[1]).toMatchObject({
       name: 'gitlab',
       transport: 'streamable-http',
       url: 'https://gitlab.com/api/v4/mcp',

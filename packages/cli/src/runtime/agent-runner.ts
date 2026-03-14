@@ -5,6 +5,22 @@ import { mockToolResponse } from './tool-mocker.js';
 import type { ToolCall } from './tool-mocker.js';
 
 const MAX_TOOL_ROUNDS = 20;
+const MAX_CONTEXT_MESSAGES = 100;
+
+/**
+ * Trim a messages array to stay within MAX_CONTEXT_MESSAGES.
+ * Keeps the first message (system/initial context) plus the most recent
+ * messages. Returns a new array when trimming occurs, or the original
+ * array when no trimming is needed.
+ */
+function trimMessages<T>(msgs: T[]): { trimmed: T[]; didTrim: boolean } {
+  if (msgs.length <= MAX_CONTEXT_MESSAGES) {
+    return { trimmed: msgs, didTrim: false };
+  }
+  // Keep the first message and the tail that fits within the limit
+  const tail = msgs.slice(msgs.length - (MAX_CONTEXT_MESSAGES - 1));
+  return { trimmed: [msgs[0], ...tail], didTrim: true };
+}
 
 export interface RunConfig {
   name: string;
@@ -85,11 +101,16 @@ async function runAnthropic(config: RunConfig): Promise<void> {
       const spinner = ora({ text: 'Thinking...', color: 'cyan' }).start();
 
       try {
+        const { trimmed: trimmedMsgs, didTrim } = trimMessages(messages);
+        if (didTrim) {
+          console.log(chalk.dim('\n  [context trimmed: keeping first message + most recent messages]'));
+        }
+
         let response = await client.messages.create({
           model: config.model,
           max_tokens: config.settings?.max_tokens ?? 4096,
           system: config.instructions,
-          messages,
+          messages: trimmedMsgs,
           ...(anthropicTools.length > 0 ? { tools: anthropicTools } : {}),
           ...(config.settings?.temperature !== undefined ? { temperature: config.settings.temperature } : {}),
         });
@@ -118,11 +139,16 @@ async function runAnthropic(config: RunConfig): Promise<void> {
 
           messages.push({ role: 'user', content: toolResults });
 
+          const { trimmed: loopTrimmed, didTrim: loopDidTrim } = trimMessages(messages);
+          if (loopDidTrim) {
+            console.log(chalk.dim('\n  [context trimmed: keeping first message + most recent messages]'));
+          }
+
           response = await client.messages.create({
             model: config.model,
             max_tokens: config.settings?.max_tokens ?? 4096,
             system: config.instructions,
-            messages,
+            messages: loopTrimmed,
             ...(anthropicTools.length > 0 ? { tools: anthropicTools } : {}),
             ...(config.settings?.temperature !== undefined ? { temperature: config.settings.temperature } : {}),
           });
@@ -142,7 +168,13 @@ async function runAnthropic(config: RunConfig): Promise<void> {
         console.log(chalk.cyan(`${config.name} > `) + text + '\n');
       } catch (err) {
         spinner.stop();
-        console.log(chalk.red('Error: ') + String(err) + '\n');
+        const errMsg = String(err).toLowerCase();
+        if (errMsg.includes('context') || errMsg.includes('token') || errMsg.includes('too many') || errMsg.includes('max_tokens') || errMsg.includes('context_length')) {
+          console.log(chalk.red('Error: context length exceeded.'));
+          console.log(chalk.yellow('The conversation is too long for this model. Please start a new session.\n'));
+        } else {
+          console.log(chalk.red('Error: ') + String(err) + '\n');
+        }
       }
 
       prompt();
@@ -208,9 +240,14 @@ async function runOpenAI(config: RunConfig): Promise<void> {
       const spinner = ora({ text: 'Thinking...', color: 'cyan' }).start();
 
       try {
+        const { trimmed: trimmedMsgs, didTrim } = trimMessages(messages);
+        if (didTrim) {
+          console.log(chalk.dim('\n  [context trimmed: keeping system message + most recent messages]'));
+        }
+
         let response = await client.chat.completions.create({
           model: config.model,
-          messages,
+          messages: trimmedMsgs,
           ...(openaiTools.length > 0 ? { tools: openaiTools } : {}),
           ...(config.settings?.max_tokens !== undefined ? { max_tokens: config.settings.max_tokens } : {}),
           ...(config.settings?.temperature !== undefined ? { temperature: config.settings.temperature } : {}),
@@ -247,9 +284,14 @@ async function runOpenAI(config: RunConfig): Promise<void> {
             messages.push({ role: 'tool' as const, content: result, tool_call_id: call.id });
           }
 
+          const { trimmed: loopTrimmed, didTrim: loopDidTrim } = trimMessages(messages);
+          if (loopDidTrim) {
+            console.log(chalk.dim('\n  [context trimmed: keeping system message + most recent messages]'));
+          }
+
           response = await client.chat.completions.create({
             model: config.model,
-            messages,
+            messages: loopTrimmed,
             ...(openaiTools.length > 0 ? { tools: openaiTools } : {}),
             ...(config.settings?.max_tokens !== undefined ? { max_tokens: config.settings.max_tokens } : {}),
             ...(config.settings?.temperature !== undefined ? { temperature: config.settings.temperature } : {}),
@@ -266,7 +308,13 @@ async function runOpenAI(config: RunConfig): Promise<void> {
         console.log(chalk.cyan(`${config.name} > `) + text + '\n');
       } catch (err) {
         spinner.stop();
-        console.log(chalk.red('Error: ') + String(err) + '\n');
+        const errMsg = String(err).toLowerCase();
+        if (errMsg.includes('context') || errMsg.includes('token') || errMsg.includes('too many') || errMsg.includes('max_tokens') || errMsg.includes('context_length')) {
+          console.log(chalk.red('Error: context length exceeded.'));
+          console.log(chalk.yellow('The conversation is too long for this model. Please start a new session.\n'));
+        } else {
+          console.log(chalk.red('Error: ') + String(err) + '\n');
+        }
       }
 
       prompt();

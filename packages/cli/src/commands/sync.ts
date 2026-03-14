@@ -1,7 +1,7 @@
 import { resolve, dirname, join } from 'node:path';
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import type { Command } from 'commander';
-import { validate } from '@automagent/schema';
+import { validate, type AgentDefinition } from '@automagent/schema';
 import { parseYamlFile } from '../utils/yaml.js';
 import { success, error, info, heading } from '../utils/output.js';
 import { exportClaudeCode } from '../exporters/claude-code.js';
@@ -50,7 +50,7 @@ export function syncCommand(program: Command): void {
         return;
       }
 
-      const agentData = data as Record<string, unknown>;
+      const agentData = data as AgentDefinition;
 
       // Determine targets
       const targets: ExportTarget[] = opts.target
