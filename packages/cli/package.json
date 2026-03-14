@@ -1,6 +1,6 @@
 {
   "name": "automagent",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "CLI toolkit for the automagent agent definition standard",
   "type": "module",
   "bin": {
@@ -16,7 +16,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@automagent/schema": "^0.2.0",
+    "@automagent/schema": "^0.3.0",
     "chalk": "^5.3.0",
     "commander": "^12.1.0",
     "open": "^11.0.0",
