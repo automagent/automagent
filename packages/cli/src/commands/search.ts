@@ -11,8 +11,11 @@ interface SearchResult {
     description: string;
     latestVersion: string;
     updatedAt: string;
+    pullCount: number;
   }>;
   total: number;
+  limit: number;
+  offset: number;
 }
 
 export function searchCommand(program: Command): void {
@@ -21,14 +24,22 @@ export function searchCommand(program: Command): void {
     .description('Search the hub for agents')
     .argument('[query]', 'Search query')
     .option('--tags <tags>', 'Filter by tags (comma-separated)')
+    .option('--limit <n>', 'Results per page', '20')
+    .option('--page <n>', 'Page number', '1')
     .option('--hub-url <url>', 'Hub URL', DEFAULT_HUB)
-    .action(async (query: string | undefined, opts: { tags?: string; hubUrl: string }) => {
+    .action(async (query: string | undefined, opts: { tags?: string; hubUrl: string; limit: string; page: string }) => {
       warnIfInsecure(opts.hubUrl);
       heading('Searching hub');
+
+      const limit = Math.max(1, Math.min(100, parseInt(opts.limit, 10) || 20));
+      const page = Math.max(1, parseInt(opts.page, 10) || 1);
+      const offset = (page - 1) * limit;
 
       const params = new URLSearchParams();
       if (query) params.set('q', query);
       if (opts.tags) params.set('tags', opts.tags);
+      params.set('limit', String(limit));
+      params.set('offset', String(offset));
 
       const url = `${opts.hubUrl}/v1/search?${params}`;
 
@@ -52,15 +63,26 @@ export function searchCommand(program: Command): void {
           return;
         }
 
-        console.log(chalk.dim(`Found ${body.total} agent(s):\n`));
+        const start = offset + 1;
+        const end = Math.min(offset + body.agents.length, body.total);
+        if (body.total > limit) {
+          console.log(chalk.dim(`Showing ${start}\u2013${end} of ${body.total} (page ${page})\n`));
+        } else {
+          console.log(chalk.dim(`Found ${body.total} agent(s):\n`));
+        }
 
         for (const agent of body.agents) {
           console.log(
             chalk.bold(`${agent.scope}/${agent.name}`) +
-              chalk.dim(`@${agent.latestVersion}`),
+              chalk.dim(`@${agent.latestVersion}`) +
+              (agent.pullCount > 0 ? chalk.dim(` \u2193${agent.pullCount}`) : ''),
           );
           console.log(`  ${agent.description}`);
           console.log();
+        }
+
+        if (body.total > offset + body.agents.length) {
+          console.log(chalk.dim(`Use --page ${page + 1} to see more results.`));
         }
       } catch (err) {
         const hint = opts.hubUrl === DEFAULT_HUB
