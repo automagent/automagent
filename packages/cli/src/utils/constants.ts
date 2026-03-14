@@ -2,6 +2,6 @@ export const SCHEMA_HEADER = '# yaml-language-server: $schema=https://raw.github
 
 export const DEFAULT_HUB = 'https://hub.automagent.dev';
 
-export const DEFAULT_IMPORT_MODEL = 'gpt-4o-2024-08-06';
+export const DEFAULT_IMPORT_MODEL = 'gpt-4o-2024-11-20';
 
 export const YAML_STRINGIFY_OPTIONS = { lineWidth: 120 };

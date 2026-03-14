@@ -105,9 +105,9 @@ describe('CrewAI importer', () => {
     expect(result['model']).toBe('gpt-4-turbo');
   });
 
-  it('defaults model to gpt-4o-2024-08-06 when llm is not specified', () => {
+  it('defaults model to gpt-4o-2024-11-20 when llm is not specified', () => {
     const result = importCrewAI({ role: 'r', goal: 'g', backstory: 'b' });
-    expect(result['model']).toBe('gpt-4o-2024-08-06');
+    expect(result['model']).toBe('gpt-4o-2024-11-20');
   });
 
   it('converts string tools to objects with name', () => {
@@ -162,9 +162,9 @@ describe('OpenAI importer', () => {
     expect(result['instructions']).toBe('Do stuff');
   });
 
-  it('defaults model to gpt-4o-2024-08-06 when not provided', () => {
+  it('defaults model to gpt-4o-2024-11-20 when not provided', () => {
     const result = importOpenAI({ name: 'bot' });
-    expect(result['model']).toBe('gpt-4o-2024-08-06');
+    expect(result['model']).toBe('gpt-4o-2024-11-20');
   });
 
   it('converts function tools to automagent tools format', () => {
@@ -308,9 +308,9 @@ describe('LangChain importer', () => {
     expect(result['model']).toBe('claude-sonnet-4-20250514');
   });
 
-  it('defaults model to gpt-4o-2024-08-06 when neither llm nor model present', () => {
+  it('defaults model to gpt-4o-2024-11-20 when neither llm nor model present', () => {
     const result = importLangChain({ system_message: 'x' });
-    expect(result['model']).toBe('gpt-4o-2024-08-06');
+    expect(result['model']).toBe('gpt-4o-2024-11-20');
   });
 
   it('converts string tools to objects with name', () => {

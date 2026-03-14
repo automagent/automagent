@@ -2,8 +2,9 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import { createServer } from 'node:http';
 import { randomBytes, createHash } from 'node:crypto';
-import { saveCredentials, loadCredentials, clearCredentials } from '../utils/credentials.js';
+import { saveCredentials, loadCredentials, clearCredentials, checkHubSecurity } from '../utils/credentials.js';
 import { DEFAULT_HUB } from '../utils/constants.js';
+import { HubClient } from '../utils/hub-client.js';
 
 function escapeHtml(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -139,13 +140,39 @@ export function registerWhoami(program: Command): void {
   program
     .command('whoami')
     .description('Show the currently authenticated user')
-    .action(() => {
+    .option('--check', 'Validate token against the hub')
+    .option('--hub-url <url>', 'Hub URL', DEFAULT_HUB)
+    .option('--insecure', 'Allow insecure HTTP connections')
+    .action(async (opts: { check?: boolean; hubUrl: string; insecure?: boolean }) => {
       const creds = loadCredentials();
       if (!creds) {
         console.log(chalk.yellow('Not logged in. Run `automagent login` to authenticate.'));
         return;
       }
-      console.log(chalk.bold(creds.username));
-      console.log(chalk.dim(`Hub: ${creds.hubUrl}`));
+
+      if (!opts.check) {
+        console.log(chalk.bold(creds.username));
+        console.log(chalk.dim(`Hub: ${creds.hubUrl}`));
+        return;
+      }
+
+      if (!checkHubSecurity(opts.hubUrl, opts.insecure)) return;
+
+      try {
+        const client = new HubClient(opts.hubUrl);
+        const res = await client.request('/agents?limit=1');
+        if (res.ok) {
+          console.log(chalk.bold(creds.username));
+          console.log(chalk.green('Token is valid.'));
+        } else if (res.status === 401) {
+          console.log(chalk.red('Token is invalid or expired. Run `automagent login` to re-authenticate.'));
+          process.exitCode = 1;
+        } else {
+          console.log(chalk.red(`Hub returned ${res.status}: ${res.error ?? 'unknown error'}`));
+          process.exitCode = 1;
+        }
+      } catch (err) {
+        HubClient.handleError(err);
+      }
     });
 }

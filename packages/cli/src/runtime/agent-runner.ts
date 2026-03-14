@@ -152,7 +152,7 @@ async function runAnthropic(config: RunConfig): Promise<void> {
 
       messages.push({ role: 'user', content: trimmed });
 
-      const spinner = ora({ text: 'Thinking...', color: 'cyan' }).start();
+      const spinner = ora({ text: 'Thinking...', color: 'cyan', isSilent: !process.stdout.isTTY }).start();
 
       try {
         const { trimmed: trimmedMsgs, didTrim } = trimMessages(messages);
@@ -291,7 +291,7 @@ async function runOpenAI(config: RunConfig): Promise<void> {
 
       messages.push({ role: 'user' as const, content: trimmed });
 
-      const spinner = ora({ text: 'Thinking...', color: 'cyan' }).start();
+      const spinner = ora({ text: 'Thinking...', color: 'cyan', isSilent: !process.stdout.isTTY }).start();
 
       try {
         const { trimmed: trimmedMsgs, didTrim } = trimMessages(messages);

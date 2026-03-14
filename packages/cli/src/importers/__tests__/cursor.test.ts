@@ -10,7 +10,7 @@ describe('importCursor', () => {
 
     expect(result.name).toBe('imported-agent');
     expect(result.instructions).toContain('Always use TypeScript');
-    expect(result.model).toBe('gpt-4o-2024-08-06');
+    expect(result.model).toBe('gpt-4o-2024-11-20');
   });
 
   it('imports a .mdc file with frontmatter', () => {

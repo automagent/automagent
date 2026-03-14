@@ -1,6 +1,16 @@
+import { readFileSync } from 'node:fs';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { getAuthHeaders } from './credentials.js';
 import { error, info } from './output.js';
 import { DEFAULT_HUB } from './constants.js';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+let cliVersion = 'unknown';
+try {
+  const pkg = JSON.parse(readFileSync(join(__dirname, '../package.json'), 'utf-8'));
+  cliVersion = pkg.version;
+} catch { /* fallback */ }
 
 const API_PREFIX = '/v1';
 const DEFAULT_TIMEOUT = 30_000;
@@ -30,6 +40,7 @@ export class HubClient {
     const { method = 'GET', body, timeout = DEFAULT_TIMEOUT } = opts;
 
     const headers: Record<string, string> = {
+      'User-Agent': `automagent-cli/${cliVersion}`,
       ...getAuthHeaders(this.hubUrl),
     };
     if (body) headers['Content-Type'] = 'application/json';

@@ -14,6 +14,8 @@ import { pullCommand } from './commands/pull.js';
 import { searchCommand } from './commands/search.js';
 import { diffCommand } from './commands/diff.js';
 import { registerLogin, registerLogout, registerWhoami } from './commands/login.js';
+import { unpublishCommand } from './commands/unpublish.js';
+import { versionsCommand } from './commands/versions.js';
 
 const program = new Command();
 
@@ -35,5 +37,7 @@ diffCommand(program);
 registerLogin(program);
 registerLogout(program);
 registerWhoami(program);
+unpublishCommand(program);
+versionsCommand(program);
 
 program.parse();
