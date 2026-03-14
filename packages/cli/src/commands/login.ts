@@ -5,12 +5,13 @@ import { randomBytes, createHash } from 'node:crypto';
 import { saveCredentials, loadCredentials, clearCredentials, checkHubSecurity } from '../utils/credentials.js';
 import { DEFAULT_HUB } from '../utils/constants.js';
 import { HubClient } from '../utils/hub-client.js';
+import { success, warn, error as logError, heading } from '../utils/output.js';
 
 function escapeHtml(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
-export function registerLogin(program: Command): void {
+export function loginCommand(program: Command): void {
   program
     .command('login')
     .description('Authenticate with the Automagent Hub via GitHub')
@@ -18,7 +19,7 @@ export function registerLogin(program: Command): void {
     .action(async (opts: { hubUrl: string }) => {
       const hubUrl = opts.hubUrl;
 
-      console.log(chalk.bold('\nAutomagent Hub Login\n'));
+      heading('Automagent Hub Login');
 
       const state = randomBytes(16).toString('hex');
       const codeVerifier = randomBytes(32).toString('base64url');
@@ -74,7 +75,7 @@ export function registerLogin(program: Command): void {
                 </body>
               </html>
             `);
-            console.log(chalk.red(`\nLogin failed: ${err instanceof Error ? err.message : err}`));
+            logError(`Login failed: ${err instanceof Error ? err.message : err}`);
             setTimeout(() => { server.close(); process.exitCode = 1; }, 500);
             return;
           }
@@ -93,7 +94,7 @@ export function registerLogin(program: Command): void {
             </html>
           `);
 
-          console.log(chalk.green(`\nLogged in as ${chalk.bold(username)}`));
+          success(`Logged in as ${chalk.bold(username)}`);
 
           setTimeout(() => {
             server.close();
@@ -112,7 +113,7 @@ export function registerLogin(program: Command): void {
 
         setTimeout(() => {
           server.close();
-          console.log(chalk.red('\nLogin timed out. Please try again.'));
+          logError('Login timed out. Please try again.');
           process.exitCode = 1;
         }, 120000);
       });
@@ -126,17 +127,17 @@ export function registerLogin(program: Command): void {
     });
 }
 
-export function registerLogout(program: Command): void {
+export function logoutCommand(program: Command): void {
   program
     .command('logout')
     .description('Log out from the Automagent Hub')
     .action(() => {
       clearCredentials();
-      console.log(chalk.green('Logged out successfully.'));
+      success('Logged out successfully.');
     });
 }
 
-export function registerWhoami(program: Command): void {
+export function whoamiCommand(program: Command): void {
   program
     .command('whoami')
     .description('Show the currently authenticated user')
@@ -146,7 +147,7 @@ export function registerWhoami(program: Command): void {
     .action(async (opts: { check?: boolean; hubUrl: string; insecure?: boolean }) => {
       const creds = loadCredentials();
       if (!creds) {
-        console.log(chalk.yellow('Not logged in. Run `automagent login` to authenticate.'));
+        warn('Not logged in. Run `automagent login` to authenticate.');
         return;
       }
 
@@ -163,12 +164,12 @@ export function registerWhoami(program: Command): void {
         const res = await client.request('/agents?limit=1');
         if (res.ok) {
           console.log(chalk.bold(creds.username));
-          console.log(chalk.green('Token is valid.'));
+          success('Token is valid.');
         } else if (res.status === 401) {
-          console.log(chalk.red('Token is invalid or expired. Run `automagent login` to re-authenticate.'));
+          logError('Token is invalid or expired. Run `automagent login` to re-authenticate.');
           process.exitCode = 1;
         } else {
-          console.log(chalk.red(`Hub returned ${res.status}: ${res.error ?? 'unknown error'}`));
+          logError(`Hub returned ${res.status}: ${res.error ?? 'unknown error'}`);
           process.exitCode = 1;
         }
       } catch (err) {

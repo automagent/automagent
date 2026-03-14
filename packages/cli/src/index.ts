@@ -13,7 +13,7 @@ import { pushCommand } from './commands/push.js';
 import { pullCommand } from './commands/pull.js';
 import { searchCommand } from './commands/search.js';
 import { diffCommand } from './commands/diff.js';
-import { registerLogin, registerLogout, registerWhoami } from './commands/login.js';
+import { loginCommand, logoutCommand, whoamiCommand } from './commands/login.js';
 import { unpublishCommand } from './commands/unpublish.js';
 import { versionsCommand } from './commands/versions.js';
 
@@ -34,9 +34,9 @@ pushCommand(program);
 pullCommand(program);
 searchCommand(program);
 diffCommand(program);
-registerLogin(program);
-registerLogout(program);
-registerWhoami(program);
+loginCommand(program);
+logoutCommand(program);
+whoamiCommand(program);
 unpublishCommand(program);
 versionsCommand(program);
 

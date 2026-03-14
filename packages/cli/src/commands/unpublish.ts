@@ -3,7 +3,6 @@ import { success, error, heading } from '../utils/output.js';
 import { checkHubSecurity, loadCredentials } from '../utils/credentials.js';
 import { HubClient } from '../utils/hub-client.js';
 import { DEFAULT_HUB } from '../utils/constants.js';
-import chalk from 'chalk';
 
 export function unpublishCommand(program: Command): void {
   program

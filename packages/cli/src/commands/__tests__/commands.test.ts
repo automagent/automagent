@@ -426,7 +426,7 @@ describe('validate command', () => {
   it('exits 1 for missing required fields', () => {
     writeFileSync(join(tmpDir, 'agent.yaml'), 'description: no name or model\n');
 
-    const { exitCode, stdout } = runCli('validate', tmpDir);
+    const { exitCode } = runCli('validate', tmpDir);
     expect(exitCode).toBe(1);
   });
 
@@ -459,7 +459,7 @@ describe('validate command', () => {
   });
 
   it('exits 1 when the YAML file does not exist', () => {
-    const { exitCode, stdout } = runCli('validate ./missing.yaml', tmpDir);
+    const { exitCode } = runCli('validate ./missing.yaml', tmpDir);
     expect(exitCode).toBe(1);
   });
 

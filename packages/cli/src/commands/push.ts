@@ -2,8 +2,7 @@ import { resolve } from 'node:path';
 import type { Command } from 'commander';
 import { validate } from '@automagent/schema';
 import { parseYamlFile } from '../utils/yaml.js';
-import chalk from 'chalk';
-import { success, error, heading } from '../utils/output.js';
+import { success, error, warn, heading } from '../utils/output.js';
 import { loadCredentials, checkHubSecurity } from '../utils/credentials.js';
 import { DEFAULT_HUB } from '../utils/constants.js';
 import { HubClient } from '../utils/hub-client.js';
@@ -56,8 +55,8 @@ export function pushCommand(program: Command): void {
 
       const creds = loadCredentials();
       if (!creds) {
-        console.log(chalk.yellow('Warning: Not logged in. Push will fail if the hub requires authentication.'));
-        console.log(chalk.yellow('Run `automagent login` to authenticate.\n'));
+        warn('Not logged in. Push will fail if the hub requires authentication.');
+        warn('Run `automagent login` to authenticate.');
       }
 
       const client = new HubClient(opts.hubUrl);

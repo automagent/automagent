@@ -15,7 +15,6 @@ import {
   looksLikeSecret,
   collectStringValues,
   runChecks,
-  UNPINNED_MODEL_PATTERNS,
 } from '../../commands/validate.js';
 
 // ---------------------------------------------------------------------------
