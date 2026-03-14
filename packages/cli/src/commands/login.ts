@@ -122,8 +122,10 @@ export function loginCommand(program: Command): void {
       console.log(`Opening browser to authenticate...\n`);
       console.log(`If the browser doesn't open, visit:\n${chalk.cyan(authUrl)}\n`);
 
-      const open = (await import('open')).default;
-      await open(authUrl);
+      if (!process.env.NO_OPEN) {
+        const open = (await import('open')).default;
+        await open(authUrl);
+      }
     });
 }
 

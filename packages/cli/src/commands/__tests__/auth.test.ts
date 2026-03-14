@@ -140,7 +140,8 @@ describe('login command', () => {
         NO_COLOR: '1',
         HOME: home,
         // Prevent `open` from actually opening a browser.
-        BROWSER: 'echo',
+        // BROWSER=echo only works on Linux (xdg-open); NO_OPEN is checked by login.ts directly.
+        NO_OPEN: '1',
       },
     });
 
